@@ -421,6 +421,14 @@
               </article>
             </div>
           </div>
+
+          <!-- 🔽 Publicaciones dinámicas desde Supabase (AGREGADO) -->
+          <div class="container my-4">
+            <h3 class="mb-3">Publicaciones recientes (desde la base)</h3>
+            <div id="libros-lista" class="d-flex flex-wrap justify-content-start"></div>
+          </div>
+          <!-- 🔼 FIN agregado -->
+
         </main>
       </div>
     </div>
@@ -431,5 +439,7 @@
     ></a>
 
     <script src="assets/js/bootstrap.bundle.min.js"></script>
+    <!-- AGREGADO: script principal que carga datos desde Supabase -->
+    <script type="module" src="./js/main.js"></script>
   </body>
 </html>
