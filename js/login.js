@@ -49,15 +49,15 @@ formRegister.addEventListener('submit', async (e) => {
   const email = document.getElementById('reg-email').value.trim();
   const telefono = document.getElementById('reg-telefono').value.trim();
   const password = document.getElementById('reg-password').value;
+  const residencia = document.getElementById('reg-residencia').value.trim();
 
-  // Crear usuario en Supabase Auth
   // Crear usuario en Supabase Auth
 const { data, error } = await supabase.auth.signUp({
   email,
   password,
   options: {
     // 🔹 datos adicionales de tu usuario
-    data: { nombre, apellido, telefono },
+    data: { nombre, apellido, telefono, residencia },
 
     // 🔹 URL a la que Supabase redirige tras confirmar el correo
     emailRedirectTo: 'http://127.0.0.1:5500/indexx.html' // o 'indexx.html' si querés que vuelva al inicio
