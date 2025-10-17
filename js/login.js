@@ -1,4 +1,4 @@
-import { supabase } from './supabaseClient.js';
+import { supabase } from '../supabaseClient.js';
 
 // Elementos del DOM
 const formLogin = document.getElementById('form-login');
@@ -51,13 +51,19 @@ formRegister.addEventListener('submit', async (e) => {
   const password = document.getElementById('reg-password').value;
 
   // Crear usuario en Supabase Auth
-  const { data, error } = await supabase.auth.signUp({
-    email,
-    password,
-    options: {
-      data: { nombre, apellido, telefono }
-    }
-  });
+  // Crear usuario en Supabase Auth
+const { data, error } = await supabase.auth.signUp({
+  email,
+  password,
+  options: {
+    // 🔹 datos adicionales de tu usuario
+    data: { nombre, apellido, telefono },
+
+    // 🔹 URL a la que Supabase redirige tras confirmar el correo
+    emailRedirectTo: 'http://127.0.0.1:5500/indexx.html' // o 'indexx.html' si querés que vuelva al inicio
+  }
+});
+
 
   if (error) return mostrarAlerta('danger', error.message);
 
