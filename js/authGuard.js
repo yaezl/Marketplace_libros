@@ -38,7 +38,7 @@ document.addEventListener('DOMContentLoaded', () => {
       }
 
       // 2. Redirige al inicio (modo invitado)
-      window.location.href = 'indexx.html';
+      window.location.href = 'index.html';
     });
   }
 });

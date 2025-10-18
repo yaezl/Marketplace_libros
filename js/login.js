@@ -37,7 +37,7 @@ formLogin.addEventListener('submit', async (e) => {
   if (error) return mostrarAlerta('danger', error.message);
 
   mostrarAlerta('success', 'Inicio de sesión exitoso. Redirigiendo...');
-  setTimeout(() => window.location.href = 'indexx.html', 1000);
+  setTimeout(() => window.location.href = 'index.html', 1000);
 });
 
 // REGISTRO
@@ -60,7 +60,7 @@ const { data, error } = await supabase.auth.signUp({
     data: { nombre, apellido, telefono, residencia },
 
     // 🔹 URL a la que Supabase redirige tras confirmar el correo
-    emailRedirectTo: 'http://127.0.0.1:5500/indexx.html' // o 'indexx.html' si querés que vuelva al inicio
+    emailRedirectTo: 'http://127.0.0.1:5500/index.html' // o 'index.html' si querés que vuelva al inicio
   }
 });
 
