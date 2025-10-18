@@ -163,12 +163,60 @@
       object-fit: contain;
       display: block;
     }
+    /* === Offcanvas móvil con look de sidebar === */
+#ocMenu {
+  --bs-offcanvas-width: 280px;          /* ancho similar al sidebar */
+  border-right: 1px solid var(--ml-neutral-200);
+}
 
-    @media (min-width: 992px) {
-      .topbar {
-        display: none !important;
-      }
-    }
+/* header del offcanvas */
+#ocMenu .offcanvas-header {
+  border-bottom: 1px solid var(--ml-neutral-200);
+}
+
+/* bloque brand (igual que en desktop) */
+.offc-brand {
+  display: flex; align-items: center; gap: .6rem;
+}
+.offc-brand .logo-pill {
+  width: 32px; height: 32px; border-radius: 10px;
+}
+.offc-brand .logo-pill img {
+  width: 28px; height: 28px; object-fit: contain; display: block;
+}
+.offc-brand .title { font-weight: 600; font-size: .95rem; line-height: 1.1; }
+.offc-brand .subtitle { color: #6b7280; font-size: .85rem; margin-top: -2px; }
+
+/* links del menú: mismos colores y pill activo que en desktop */
+#ocMenu .nav-link {
+  color: var(--ml-neutral-700);
+  border-radius: 12px;
+  padding: .6rem .75rem;
+  display: flex; align-items: center; gap: .6rem;
+}
+#ocMenu .nav-link i { color: inherit; }
+
+#ocMenu .nav-link:hover,
+#ocMenu .nav-link.active {
+  background: #fff;
+  border: 1px solid var(--ml-neutral-200);
+  color: #000;
+  box-shadow: 0 2px 8px rgba(0,0,0,.04);
+}
+
+/* divider suave */
+#ocMenu .divider {
+  border-top: 1px solid var(--ml-neutral-200);
+  margin: .75rem 0 1rem;
+}
+
+/* mejorar legibilidad y tap target en mobile */
+#ocMenu .nav { row-gap: .25rem; }
+#ocMenu .offcanvas-body { padding-top: .75rem; }
+
+/* que el FAB no tape el menú abierto (lo ocultamos cuando abre el offcanvas) */
+body.offcanvas-open .fab { display: none; }
+
   </style>
 </head>
 
@@ -261,7 +309,7 @@
         </div>
         <div class="offcanvas-body">
           <nav class="nav flex-column gap-1">
-            <a class="nav-link active" href="#"><i class="bi bi-compass"></i> Descrubre</a>
+            <a class="nav-link active" href="#"><i class="bi bi-compass"></i> Descubre</a>
             <a class="nav-link" href="#"><i class="bi bi-grid" data-auth-required></i> Wishlist</a>
             <a class="nav-link" href="#"><i class="bi bi-collection" data-auth-required></i> Mis
               Publicaciones</a>
