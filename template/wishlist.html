@@ -1,0 +1,253 @@
+<!-- ====================== WISHLIST (DEMO VISUAL) ====================== -->
+<section class="container my-4">
+  <div class="d-flex align-items-center justify-content-between mb-3">
+    <h2 class="h4 m-0">Mi Wishlist</h2>
+    <div class="d-flex gap-2">
+      <button class="btn btn-outline-secondary btn-sm" id="btn-exportar"><i class="bi bi-box-arrow-up"></i> Exportar</button>
+      <button class="btn btn-dark btn-sm" id="btn-agregar"><i class="bi bi-plus-lg"></i> Agregar libro</button>
+    </div>
+  </div>
+
+  <!-- Tabs -->
+  <ul class="nav nav-pills mb-3" id="wishlist-tabs" role="tablist">
+    <li class="nav-item" role="presentation">
+      <button class="nav-link active" id="tab-quiero-leer" data-bs-toggle="pill" data-bs-target="#pane-quiero-leer" type="button" role="tab">
+        Quiero leer
+      </button>
+    </li>
+    <li class="nav-item" role="presentation">
+      <button class="nav-link" id="tab-me-gustaron" data-bs-toggle="pill" data-bs-target="#pane-me-gustaron" type="button" role="tab">
+        Me gustaron
+      </button>
+    </li>
+  </ul>
+
+  <!-- Barra de búsqueda + filtros (ligeros) -->
+  <div class="row g-2 align-items-center mb-3">
+    <div class="col-12 col-md-6">
+      <div class="input-group search-wrap">
+        <span class="input-group-text bg-white border-0"><i class="bi bi-search text-secondary"></i></span>
+        <input id="wishlist-search" type="text" class="form-control border-0" placeholder="Buscar por título o autor...">
+      </div>
+    </div>
+    <div class="col-6 col-md-3">
+      <select id="wishlist-orden" class="form-select">
+        <option value="recientes">Ordenar: más recientes</option>
+        <option value="titulo">Ordenar: título (A–Z)</option>
+        <option value="autor">Ordenar: autor (A–Z)</option>
+      </select>
+    </div>
+    <div class="col-6 col-md-3 d-none" id="filtro-precio-wrap">
+      <select id="wishlist-precio" class="form-select">
+        <option value="todos">Precio: todos</option>
+        <option value="0-10000">$0 – $10.000</option>
+        <option value="10000-20000">$10.000 – $20.000</option>
+        <option value="20000-mas">$20.000+</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="tab-content">
+    <!-- Pestaña: Quiero leer (Google Books) -->
+    <div class="tab-pane fade show active" id="pane-quiero-leer" role="tabpanel" aria-labelledby="tab-quiero-leer">
+      <div class="row g-3 row-cols-2 row-cols-md-3 row-cols-xl-5" id="grid-quiero-leer">
+        <!-- CARD DEMO -->
+        <div class="col wishlist-item" data-titulo="El nombre del viento" data-autor="Patrick Rothfuss">
+          <article class="book-card h-100 p-2">
+            <div class="ratio-3x4 mb-2">
+              <img class="obj-cover rounded" src="https://books.google.com/books/content?id=demo&printsec=frontcover&img=1&zoom=1" alt="El nombre del viento">
+            </div>
+            <div class="small text-secondary">Patrick Rothfuss</div>
+            <h3 class="fs-6 mb-1">El nombre del viento</h3>
+            <div class="d-flex flex-wrap gap-1 mb-2">
+              <span class="badge text-bg-light border">Fantasía</span>
+              <span class="badge text-bg-light border">2007</span>
+            </div>
+            <div class="d-flex justify-content-between align-items-center">
+              <div class="form-check form-switch">
+                <input class="form-check-input" type="checkbox" checked id="notif-1">
+                <label class="form-check-label small" for="notif-1">Notificar si aparece</label>
+              </div>
+              <div class="btn-group">
+                <button class="btn btn-outline-secondary btn-sm">Ver ediciones</button>
+                <button class="btn btn-outline-danger btn-sm"><i class="bi bi-trash"></i></button>
+              </div>
+            </div>
+          </article>
+        </div>
+        <!-- /CARD DEMO -->
+
+        <!-- CARD DEMO 2 -->
+        <div class="col wishlist-item" data-titulo="Cien años de soledad" data-autor="G. García Márquez">
+          <article class="book-card h-100 p-2">
+            <div class="ratio-3x4 mb-2">
+              <img class="obj-cover rounded" src="https://books.google.com/books/content?id=demo2&printsec=frontcover&img=1&zoom=1" alt="Cien años de soledad">
+            </div>
+            <div class="small text-secondary">G. García Márquez</div>
+            <h3 class="fs-6 mb-1">Cien años de soledad</h3>
+            <div class="d-flex flex-wrap gap-1 mb-2">
+              <span class="badge text-bg-light border">Realismo mágico</span>
+              <span class="badge text-bg-light border">1967</span>
+            </div>
+            <div class="d-flex justify-content-between align-items-center">
+              <div class="form-check form-switch">
+                <input class="form-check-input" type="checkbox" id="notif-2">
+                <label class="form-check-label small" for="notif-2">Notificar si aparece</label>
+              </div>
+              <div class="btn-group">
+                <button class="btn btn-outline-secondary btn-sm">Ver ediciones</button>
+                <button class="btn btn-outline-danger btn-sm"><i class="bi bi-trash"></i></button>
+              </div>
+            </div>
+          </article>
+        </div>
+        <!-- /CARD DEMO 2 -->
+      </div>
+
+      <!-- Estado vacío (oculto si hay cards) -->
+      <div class="text-center py-5 d-none" id="empty-quiero-leer">
+        <div class="mb-2">📚</div>
+        <h4 class="h6">Todavía no agregaste libros a “Quiero leer”.</h4>
+        <p class="text-secondary small mb-3">Buscá en Google Books y guardalos acá para no olvidarte.</p>
+        <button class="btn btn-dark btn-sm"><i class="bi bi-plus-lg"></i> Buscar en Google Books</button>
+      </div>
+    </div>
+
+    <!-- Pestaña: Me gustaron (likes del marketplace) -->
+    <div class="tab-pane fade" id="pane-me-gustaron" role="tabpanel" aria-labelledby="tab-me-gustaron">
+      <div class="row g-3 row-cols-2 row-cols-md-3 row-cols-xl-5" id="grid-me-gustaron">
+        <!-- CARD DEMO LIKE -->
+        <div class="col wishlist-item" data-titulo="Clean Code" data-autor="Robert C. Martin" data-precio="18500">
+          <article class="book-card h-100 p-2">
+            <div class="ratio-3x4 mb-2">
+              <img class="obj-cover rounded" src="https://images.unsplash.com/photo-1524995997946-a1c2e315a42f?q=80&w=600&auto=format" alt="Clean Code">
+            </div>
+            <div class="small text-secondary">Robert C. Martin</div>
+            <h3 class="fs-6 mb-1 d-flex justify-content-between align-items-center">
+              Clean Code
+              <span class="badge text-bg-success ms-2">$18.500</span>
+            </h3>
+            <div class="small text-secondary mb-2">Vendedor: @dev_mza • Godoy Cruz</div>
+            <div class="d-flex justify-content-between align-items-center">
+              <div class="form-check form-switch">
+                <input class="form-check-input" type="checkbox" id="precio-1" checked>
+                <label class="form-check-label small" for="precio-1">Seguir precio</label>
+              </div>
+              <div class="btn-group">
+                <button class="btn btn-outline-primary btn-sm">Ver publicación</button>
+                <button class="btn btn-outline-danger btn-sm"><i class="bi bi-trash"></i></button>
+              </div>
+            </div>
+          </article>
+        </div>
+        <!-- /CARD DEMO LIKE -->
+
+        <!-- CARD DEMO LIKE 2 -->
+        <div class="col wishlist-item" data-titulo="The Pragmatic Programmer" data-autor="Hunt/Thomas" data-precio="20000">
+          <article class="book-card h-100 p-2">
+            <div class="ratio-3x4 mb-2">
+              <img class="obj-cover rounded" src="https://images.unsplash.com/photo-1512820790803-83ca734da794?q=80&w=600&auto=format" alt="The Pragmatic Programmer">
+            </div>
+            <div class="small text-secondary">A. Hunt / D. Thomas</div>
+            <h3 class="fs-6 mb-1 d-flex justify-content-between align-items-center">
+              The Pragmatic Programmer
+              <span class="badge text-bg-success ms-2">$20.000</span>
+            </h3>
+            <div class="small text-secondary mb-2">Vendedor: @fenix • Capital</div>
+            <div class="d-flex justify-content-between align-items-center">
+              <div class="form-check form-switch">
+                <input class="form-check-input" type="checkbox" id="precio-2">
+                <label class="form-check-label small" for="precio-2">Seguir precio</label>
+              </div>
+              <div class="btn-group">
+                <button class="btn btn-outline-primary btn-sm">Ver publicación</button>
+                <button class="btn btn-outline-danger btn-sm"><i class="bi bi-trash"></i></button>
+              </div>
+            </div>
+          </article>
+        </div>
+        <!-- /CARD DEMO LIKE 2 -->
+      </div>
+
+      <!-- Estado vacío (oculto si hay cards) -->
+      <div class="text-center py-5 d-none" id="empty-me-gustaron">
+        <div class="mb-2">💛</div>
+        <h4 class="h6">Todavía no marcaste publicaciones con “Me gusta”.</h4>
+        <p class="text-secondary small mb-3">Dale ♥ a las publicaciones que te interesen y aparecerán acá.</p>
+        <a class="btn btn-outline-secondary btn-sm" href="#">Explorar publicaciones</a>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- =================== /WISHLIST (DEMO VISUAL) =================== -->
+
+<!-- JS mínimo para búsqueda/orden (solo demo visual) -->
+<script>
+  (function () {
+    const search = document.getElementById('wishlist-search');
+    const orden = document.getElementById('wishlist-orden');
+    const filtroPrecioWrap = document.getElementById('filtro-precio-wrap');
+    const gridLeer = document.getElementById('grid-quiero-leer');
+    const gridLikes = document.getElementById('grid-me-gustaron');
+
+    // Mostrar filtro de precio solo en "Me gustaron"
+    const tabs = document.getElementById('wishlist-tabs');
+    tabs?.addEventListener('click', (e) => {
+      const btn = e.target.closest('[data-bs-target]');
+      if (!btn) return;
+      const target = btn.getAttribute('data-bs-target');
+      filtroPrecioWrap.classList.toggle('d-none', target !== '#pane-me-gustaron');
+    });
+
+    // Filtro por texto (título/autor) en la pestaña visible
+    function filtrar() {
+      const q = (search.value || '').toLowerCase();
+      const activePane = document.querySelector('.tab-pane.active');
+      const items = activePane?.querySelectorAll('.wishlist-item') || [];
+      items.forEach(it => {
+        const t = (it.getAttribute('data-titulo') || '').toLowerCase();
+        const a = (it.getAttribute('data-autor') || '').toLowerCase();
+        it.classList.toggle('d-none', !(t.includes(q) || a.includes(q)));
+      });
+      toggleEmptyState();
+    }
+
+    // Orden simple (demo)
+    function ordenar() {
+      const mode = orden.value;
+      const activePane = document.querySelector('.tab-pane.active');
+      const grid = activePane?.id === 'pane-me-gustaron' ? gridLikes : gridLeer;
+      const cards = Array.from(grid.querySelectorAll('.col'));
+
+      cards.sort((A, B) => {
+        const tA = (A.querySelector('h3')?.textContent || '').trim().toLowerCase();
+        const tB = (B.querySelector('h3')?.textContent || '').trim().toLowerCase();
+        const aA = (A.querySelector('.small.text-secondary')?.textContent || '').trim().toLowerCase();
+        const aB = (B.querySelector('.small.text-secondary')?.textContent || '').trim().toLowerCase();
+
+        if (mode === 'titulo') return tA.localeCompare(tB);
+        if (mode === 'autor') return aA.localeCompare(aB);
+        return 0; // recientes (sin cambios en demo)
+      });
+
+      cards.forEach(c => grid.appendChild(c));
+    }
+
+    function toggleEmptyState() {
+      const panes = [
+        { grid: gridLeer, empty: document.getElementById('empty-quiero-leer') },
+        { grid: gridLikes, empty: document.getElementById('empty-me-gustaron') },
+      ];
+      panes.forEach(({ grid, empty }) => {
+        const visibles = grid.querySelectorAll('.col:not(.d-none)').length;
+        empty.classList.toggle('d-none', visibles > 0);
+      });
+    }
+
+    search?.addEventListener('input', filtrar);
+    orden?.addEventListener('change', ordenar);
+
+    // Estado inicial
+    toggleEmptyState();
+  })();
+</script>
