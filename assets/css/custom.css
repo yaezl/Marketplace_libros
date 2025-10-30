@@ -235,3 +235,341 @@
     body.offcanvas-open .fab {
       display: none;
     }
+
+    /* Modal */
+    .ml-modal {
+      position: fixed;
+      inset: 0;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 2000;
+    }
+
+    .ml-modal.open {
+      display: flex;
+    }
+
+    .ml-modal__backdrop {
+      position: absolute;
+      inset: 0;
+      background: rgba(0, 0, 0, .45);
+      backdrop-filter: blur(2px);
+    }
+
+    .ml-modal__dialog {
+      position: relative;
+      width: min(920px, 94vw);
+      max-height: 90vh;
+      background: #fff;
+      border-radius: var(--radius-xl, 1.25rem);
+      box-shadow: 0 20px 60px rgba(0, 0, 0, .35);
+      overflow: hidden;
+      transform: translateY(10px) scale(.98);
+      opacity: 0;
+      transition: .2s ease;
+    }
+
+    .ml-modal.open .ml-modal__dialog {
+      transform: translateY(0) scale(1);
+      opacity: 1;
+    }
+
+    .ml-modal__header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 18px;
+      border-bottom: 1px solid var(--ml-neutral-200);
+    }
+
+    .ml-modal__body {
+      padding: 18px;
+      overflow: auto;
+      max-height: calc(90vh - 56px);
+    }
+
+    .ml-modal__close {
+      border: none;
+      background: transparent;
+      font-size: 20px;
+      line-height: 1;
+      color: var(--ml-neutral-700);
+      cursor: pointer;
+    }
+
+    body.no-scroll {
+      overflow: hidden;
+    }
+
+    /* Stepper */
+    .wizard-steps {
+      list-style: none;
+      display: flex;
+      gap: 8px;
+      padding: 0;
+      margin: 0 0 16px;
+      counter-reset: step;
+    }
+
+    .wizard-steps li {
+      position: relative;
+      padding: .4rem .8rem .4rem 2rem;
+      border: 1px solid var(--ml-neutral-200);
+      border-radius: 999px;
+      color: var(--ml-neutral-700);
+      background: #fff;
+      font-weight: 500;
+    }
+
+    .wizard-steps li::before {
+      counter-increment: step;
+      content: counter(step);
+      position: absolute;
+      left: .5rem;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 1.2rem;
+      height: 1.2rem;
+      display: grid;
+      place-items: center;
+      border-radius: 50%;
+      background: var(--ml-neutral-200);
+      color: #333;
+      font-size: .8rem;
+      font-weight: 700;
+    }
+
+    .wizard-steps li.active {
+      border-color: var(--ml-amber-300);
+      color: #000;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, .04);
+    }
+
+    .wizard-steps li.active::before {
+      background: var(--ml-amber-500);
+      color: #1a1a1a;
+    }
+
+    /* Autocomplete box */
+    .autocomplete-results {
+      position: absolute;
+      top: 100%;
+      left: 0;
+      right: 0;
+      z-index: 10;
+      background: #fff;
+      border: 1px solid var(--ml-neutral-200);
+      border-radius: 12px;
+      margin-top: 6px;
+      max-height: 240px;
+      overflow: auto;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, .12);
+    }
+
+    .autocomplete-item {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      padding: 8px 10px;
+      cursor: pointer;
+    }
+
+    .autocomplete-item:hover {
+      background: #fafafa;
+    }
+
+    .autocomplete-item .book-cover {
+      width: 38px;
+      height: 52px;
+      object-fit: cover;
+      border-radius: 6px;
+    }
+
+    .autocomplete-item .book-title {
+      font-weight: 600;
+    }
+
+    .autocomplete-item .book-author {
+      font-size: .88rem;
+      color: var(--ml-neutral-700);
+    }
+
+    /* Readonly look */
+    .readonly-field[readonly] {
+      background: #fafafa;
+    }
+
+    /* Buttons (en tu línea visual) */
+    .btn:hover {
+      --btn-bg: var(--ml-amber-500, #ffb800);
+      --btn-fg: #1a1a1a;
+      border: none;
+      border-radius: 10px;
+      font-weight: 600;
+      background: var(--btn-bg);
+      color: var(--btn-fg);
+    }
+
+    .btn:active {
+      transform: translateY(1px);
+    }
+
+    .btn-secondary {
+      padding: 10px 16px;
+      border-radius: 10px;
+      border: 1px solid var(--ml-neutral-200);
+      background: #fff;
+      color: var(--ml-neutral-800);
+    }
+
+    /* FAB ajuste */
+    .fab {
+      background: var(--ml-neutral-900);
+      color: #fff;
+    }
+
+    .fab:hover {
+      background: #000;
+    }
+
+    body.offcanvas-open .fab {
+      display: none;
+    }
+
+    /* ===== IG-style uploader (versión compacta) ===== */
+    .ig-uploader {
+      display: grid;
+      gap: .5rem;
+      justify-content: start;
+      /* que no se centre demasiado */
+    }
+
+    /* cuadrado principal más chico */
+    .ig-stage {
+      position: relative;
+      border-radius: 1rem;
+      background: #a9a9a9;
+      color: #fff;
+      overflow: hidden;
+      width: 300px;
+      height: 300px;
+      display: grid;
+      place-items: center;
+      border: 1px solid var(--ml-neutral-200);
+      transition: background .2s, outline .2s;
+    }
+
+    @media (max-width: 600px) {
+      .ig-stage {
+        width: 180px;
+        height: 180px;
+      }
+    }
+
+    .ig-empty {
+      text-align: center;
+      color: #cbd5e1;
+    }
+
+    .ig-empty p {
+      font-size: .9rem;
+    }
+
+    /* la imagen no se extiende ni se recorta */
+    .ig-main {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      background: #f7f7f7;
+      display: block;
+    }
+
+    /* Botón + */
+    .ig-add {
+      position: absolute;
+      right: .5rem;
+      bottom: .5rem;
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      border: 1px solid rgba(255, 255, 255, .3);
+      background: rgba(0, 0, 0, .55);
+      color: #fff;
+      cursor: pointer;
+      backdrop-filter: blur(6px);
+    }
+
+    .ig-add:hover {
+      background: rgba(0, 0, 0, .75);
+    }
+
+    .ig-stage.dragover {
+      outline: 2px dashed var(--ml-amber-400);
+      outline-offset: -4px;
+      background: #121420;
+    }
+
+    /* Miniaturas más pequeñas */
+    .ig-tray {
+      display: flex;
+      gap: .4rem;
+      flex-wrap: nowrap;
+      overflow-x: auto;
+      padding-bottom: .25rem;
+    }
+
+    .ig-thumb {
+      position: relative;
+      flex: 0 0 auto;
+      width: 60px;
+      height: 60px;
+      border-radius: 10px;
+      overflow: hidden;
+      cursor: grab;
+      border: 2px solid transparent;
+      background: var(--ml-neutral-100);
+    }
+
+    .ig-thumb img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .ig-thumb.active {
+      border-color: var(--ml-amber-500);
+    }
+
+    .ig-thumb:active {
+      cursor: grabbing;
+    }
+
+    .ig-thumb .ig-del {
+      position: absolute;
+      top: 3px;
+      right: 3px;
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      border: none;
+      background: rgba(0, 0, 0, .55);
+      color: #fff;
+      font-size: 11px;
+      line-height: 1;
+      display: grid;
+      place-items: center;
+      cursor: pointer;
+    }
+
+    .ig-thumb .ig-del:hover {
+      background: rgba(0, 0, 0, .8);
+    }
+
+    /* Accesibilidad */
+    .ig-stage:focus-visible {
+      outline: 2px solid var(--ml-amber-500);
+      outline-offset: 2px;
+    }
