@@ -718,6 +718,52 @@ import { supabase } from "../supabaseClient.js";
     }
   }
 
+  // ---- Auto-open desde index / deep link ----
+  async function autoOpenIfRequested() {
+    const params = new URLSearchParams(window.location.search);
+    const wantOpen =
+      params.get("open") === "publish" ||
+      sessionStorage.getItem("open-publish") === "1";
+
+    if (!wantOpen) return;
+
+    // si necesitás exigir login, podés validar acá
+    try {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (!user) {
+        // si no hay user, dejá el flag y delegá en tu guard de auth
+        sessionStorage.setItem("open-publish", "1");
+      } else {
+        // cerrá offcanvas si estuviera abierto y abrí el modal
+        if (ocMenu?.classList.contains("show")) {
+          const offc =
+            bootstrap.Offcanvas.getInstance(ocMenu) ||
+            new bootstrap.Offcanvas(ocMenu);
+          offc.hide();
+          ocMenu.addEventListener(
+            "hidden.bs.offcanvas",
+            () => setTimeout(openModal, 20),
+            { once: true }
+          );
+        } else {
+          setTimeout(openModal, 10);
+        }
+        // limpieza: sacá el flag y la query
+        sessionStorage.removeItem("open-publish");
+        if (params.get("open")) {
+          history.replaceState({}, document.title, window.location.pathname);
+        }
+      }
+    } catch (_) {
+      // no rompas el flujo si falla algo menor
+    }
+  }
+
+  // ejecutá el auto-open después de montar todo
+  document.addEventListener("DOMContentLoaded", autoOpenIfRequested);
+
   // init
   setStep(1);
 })();
