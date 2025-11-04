@@ -139,6 +139,13 @@
                     </div>
                 </div>
 
+                <!-- donde quieras listar las publicaciones del usuario -->
+                <section class="mt-3">
+                    <h5 class="mb-2">Mis publicaciones</h5>
+                    <div id="myListingsGrid" class="row row-cols-2 row-cols-md-4 row-cols-xl-6 g-3"></div>
+                </section>
+
+
                 <!-- FAB Publicar -->
                 <a href="#" class="fab" id="fabPublish" title="Publicar libro" data-auth-required data-open="publish"
                     aria-haspopup="dialog" aria-controls="bookModal">
@@ -233,10 +240,10 @@
                                             <select id="bookCondition" class="form-select" required>
                                                 <option value="">Selecciona el estado</option>
                                                 <option value="nuevo">Nuevo</option>
-                                                <option value="como-nuevo">Como nuevo</option>
+                                                <option value="como_nuevo">Como nuevo</option>
+                                                <option value="muy_bueno">Muy bueno</option>
                                                 <option value="bueno">Bueno</option>
-                                                <option value="aceptable">Aceptable</option>
-                                                <option value="para-repuestos">Para repuestos</option>
+                                                <option value="usado">Usado</option>
                                             </select>
                                         </div>
 
@@ -251,7 +258,15 @@
                                                 <option value="frances">Francés</option>
                                                 <option value="otro">Otro</option>
                                             </select>
+
+                                            <!-- Campo visible solo si eligen "Otro" -->
+                                            <input type="text" id="bookLanguageOther" class="form-control mt-2 d-none"
+                                                placeholder="Especificá el idioma (ej.: Italiano, Alemán...)"
+                                                aria-label="Otro idioma" />
+                                            <div id="bookLanguageHelp" class="form-text d-none">Ej.: Italiano, Alemán,
+                                                Japonés…</div>
                                         </div>
+
 
                                         <div class="col-md-6">
                                             <label for="bookCover" class="form-label">Tipo de tapa <span
@@ -330,7 +345,7 @@
 
                 <script type="module" src="/js/main.js"></script>
                 <script type="module" src="/js/authGuard.js"></script>
-                <script src="/js/modal-publish.js"></script>
+                <script type="module" src="/js/modal-publish.js"></script>
                 <script>
                     // Manejar retorno desde el mail de confirmación:
                     document.addEventListener("DOMContentLoaded", async () => {

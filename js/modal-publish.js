@@ -1,3 +1,5 @@
+import { supabase } from "../supabaseClient.js";
+
 (() => {
   // ---------- Modal base ----------
   const modal = document.getElementById("bookModal");
@@ -142,16 +144,21 @@
     }
 
     if (currentStep === 2) {
-      // Paso 2: validar ejemplar mínimo
       const cond = document.getElementById("bookCondition")?.value;
       const lang = document.getElementById("bookLanguage")?.value;
+      const langO = document.getElementById("bookLanguageOther")?.value?.trim();
       const cover = document.getElementById("bookCover")?.value;
       const price = document.getElementById("bookPrice")?.value;
-      if (!cond || !lang || !cover || !price) {
+
+      const langOk = lang && (lang !== "otro" || !!langO);
+
+      if (!cond || !langOk || !cover || !price) {
         (!cond
           ? document.getElementById("bookCondition")
           : !lang
           ? document.getElementById("bookLanguage")
+          : lang === "otro" && !langO
+          ? document.getElementById("bookLanguageOther")
           : !cover
           ? document.getElementById("bookCover")
           : document.getElementById("bookPrice")
@@ -163,10 +170,8 @@
     setStep(currentStep + 1);
   });
 
-  // ---------- Tu lógica Google Books (integrada tal cual) ----------
-  // (Pequeño detalle: todo esto se ejecuta con el modal ya en el DOM, IDs iguales)
+  // ---------- Google Books ----------
   const API_BASE = "https://www.googleapis.com/books/v1/volumes";
-
   const searchInput = document.getElementById("searchBook");
   const resultsDiv = document.getElementById("autocompleteResults");
   const manualBtn = document.getElementById("manualEntryBtn");
@@ -230,9 +235,8 @@
       .map(
         (book) => `
       <div class="autocomplete-item" data-book-id="${book.id}">
-        <img src="${book.thumbnail}" alt="${
-          book.title
-        }" class="book-cover" onerror="this.src='https://via.placeholder.com/50x70?text=Sin+portada'">
+        <img src="${book.thumbnail}" alt="${book.title}"
+             class="book-cover" onerror="this.src='https://via.placeholder.com/50x70?text=Sin+portada'">
         <div class="book-info">
           <div class="book-title">${book.title}</div>
           <div class="book-author">${book.authors}${
@@ -263,20 +267,22 @@
       searchInput.value = volumeInfo.title || "";
       resultsDiv.style.display = "none";
 
-      if (!document.querySelector(".info-badge")) {
-        const badge = document.createElement("span");
+      let badge = document.querySelector(".info-badge");
+      if (!badge) {
+        badge = document.createElement("span");
         badge.className = "info-badge ms-2 small text-success fw-semibold";
-        badge.textContent = "✓ Información autocompletada desde Google Books";
         searchInput.parentElement.appendChild(badge);
       }
+      badge.textContent =
+        "✓ Información autocompletada desde Google Books. Revisá y continuá →";
 
-      // avanzar automáticamente al paso 2 y luego al 3 si querés:
+      // quedarse en paso 1
       setStep(1);
       setTimeout(() => {
-        document
-          .querySelector('[data-step="2"]')
-          .scrollIntoView({ behavior: "smooth", block: "center" });
-      }, 150);
+        const title = document.getElementById("bookTitle");
+        title?.focus({ preventScroll: false });
+        title?.scrollIntoView({ behavior: "smooth", block: "center" });
+      }, 120);
     } catch (err) {
       console.error("Error al obtener detalles del libro:", err);
     }
@@ -310,9 +316,7 @@
       if (badge) badge.remove();
 
       setStep(1);
-      setTimeout(() => {
-        titleInput.focus();
-      }, 100);
+      setTimeout(() => titleInput.focus(), 100);
     } else {
       manualBtn.textContent =
         "✏️ No encuentro mi libro, quiero cargarlo manualmente";
@@ -378,6 +382,21 @@
     }
   });
 
+  // --- Idioma: manejar opción "Otro" ---
+  const langSel = document.getElementById("bookLanguage");
+  const langOther = document.getElementById("bookLanguageOther");
+  const langHelp = document.getElementById("bookLanguageHelp");
+
+  function syncLang() {
+    const isOther = langSel.value === "otro";
+    langOther.classList.toggle("d-none", !isOther);
+    langHelp.classList.toggle("d-none", !isOther);
+    langOther.required = isOther;
+    if (!isOther) langOther.value = "";
+  }
+  syncLang();
+  langSel.addEventListener("change", syncLang);
+
   // ===== IG-STYLE MULTI IMAGE UPLOADER =====
   const igStage = document.getElementById("igStage");
   const igEmpty = document.getElementById("igEmpty");
@@ -390,7 +409,7 @@
   let igFiles = []; // Array<File>
   let igCurrent = 0; // índice de imagen activa
 
-  // Helpers
+  // Helpers (uploader)
   const isImage = (f) => f && f.type && f.type.startsWith("image/");
   const readAsDataURL = (file) =>
     new Promise((res, rej) => {
@@ -430,7 +449,7 @@
 
       // seleccionar
       item.addEventListener("click", (e) => {
-        if (e.target.closest(".ig-del")) return; // lo maneja el delete
+        if (e.target.closest(".ig-del")) return;
         igCurrent = idx;
         renderStage();
         renderTray();
@@ -449,7 +468,6 @@
       // drag & drop reorden
       item.addEventListener("dragstart", (e) => {
         e.dataTransfer.setData("text/plain", String(idx));
-        // efecto visual
         item.style.opacity = 0.5;
       });
       item.addEventListener("dragend", () => {
@@ -461,7 +479,6 @@
         const from = Number(e.dataTransfer.getData("text/plain"));
         const to = idx;
         if (Number.isNaN(from)) return;
-        // reordenar
         const [moved] = igFiles.splice(from, 1);
         igFiles.splice(to, 0, moved);
         if (igCurrent === from) igCurrent = to;
@@ -503,13 +520,12 @@
       igStage.classList.remove("dragover");
     })
   );
-
   igStage.addEventListener("drop", (e) => {
     const files = e.dataTransfer?.files || [];
     addFiles(files);
   });
 
-  // Teclas rápidas en el stage (← → para navegar)
+  // Teclas rápidas en el stage
   igStage.addEventListener("keydown", (e) => {
     if (!igFiles.length) return;
     if (e.key === "ArrowRight") {
@@ -528,33 +544,179 @@
   renderStage();
   renderTray();
 
-  // ===== Integración con el submit del form =====
-  // Nota: no podemos “inyectar” los File al input como FileList, así que usamos igFiles directamente.
+  // ===== Conexión con Supabase =====
+  const BUCKET_NAME = "bookea-images";
+
+  function getFinalLanguage() {
+    const sel = document.getElementById("bookLanguage");
+    const other = document.getElementById("bookLanguageOther");
+    return sel.value === "otro" ? other?.value?.trim() || "otro" : sel.value;
+  }
+
+  async function getCurrentProfileName() {
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    if (!user) return "Usuario";
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("nombre, apellido")
+      .eq("id", user.id)
+      .maybeSingle();
+    if (!profile) return "Usuario";
+    return (
+      `${profile.nombre || ""} ${profile.apellido || ""}`.trim() || "Usuario"
+    );
+  }
+
+  async function uploadBookImages(userId, bookId, files) {
+    const uploaded = [];
+    let position = 0;
+
+    for (const file of files) {
+      const ext = (file.type.split("/")[1] || "jpg").toLowerCase();
+      const path = `${userId}/${bookId}/${position}.${ext}`;
+      const { error: upErr } = await supabase.storage
+        .from(BUCKET_NAME)
+        .upload(path, file, { upsert: false });
+      if (upErr) throw upErr;
+
+      const { data: pub } = supabase.storage
+        .from(BUCKET_NAME)
+        .getPublicUrl(path);
+      uploaded.push({ url: pub.publicUrl, position });
+      position++;
+    }
+    return uploaded;
+  }
+
+  async function insertBookImages(bookId, urls) {
+    if (!urls.length) return;
+    const rows = urls.map((u) => ({
+      book_id: bookId,
+      url: u.url,
+      position: u.position,
+    }));
+    const { error } = await supabase.from("book_images").insert(rows);
+    if (error) throw error;
+  }
+
+  function renderMyBookCard({
+    id,
+    title,
+    price,
+    condition,
+    cover_url,
+    publisher,
+  }) {
+    const grid = document.getElementById("myListingsGrid");
+    if (!grid) return; // si no está en esta vista, no hacemos nada
+
+    const col = document.createElement("div");
+    col.className = "col-6 col-md-4 col-lg-3";
+
+    col.innerHTML = `
+      <div class="book-card p-2 h-100 border rounded-3 shadow-sm">
+        <div class="ratio ratio-3x4 mb-2" style="border-radius:12px; overflow:hidden;">
+          <img src="${cover_url || "/assets/img/placeholder-3x4.png"}"
+               alt="${title}" class="w-100 h-100 object-fit-cover">
+        </div>
+        <div class="fw-semibold text-truncate" title="${title}">${title}</div>
+        <div class="small text-secondary">por ${publisher}</div>
+        <div class="small mt-1 text-capitalize">${condition}</div>
+        <div class="fw-semibold mt-2">
+          ${Number(price).toLocaleString("es-AR", {
+            style: "currency",
+            currency: "ARS",
+          })}
+        </div>
+        <!-- ❤️ Wishlist (pendiente; usar table book_likes) -->
+        <!--
+        <button class="btn btn-sm btn-outline-secondary rounded-circle mt-1"
+                data-like="${id}" title="Guardar en wishlist">
+          <i class="bi bi-heart"></i>
+        </button>
+        -->
+      </div>`;
+    grid.prepend(col);
+  }
+
+  // ===== Submit: crear book + subir imágenes + pintar la card =====
   const formEl = document.getElementById("bookForm");
-  formEl.addEventListener("submit", async (e) => {
-    // Validación: al menos 1 imagen
+  formEl.addEventListener("submit", onPublish);
+
+  async function onPublish(e) {
+    e.preventDefault();
+
     if (igFiles.length === 0) {
-      e.preventDefault();
       alert("Subí al menos una foto del ejemplar 😊");
-      setStep(3); // asegurarnos de estar en el paso 3 si usás wizard
+      setStep(3);
       igStage.focus();
       return;
     }
-    // Si vas a enviar por fetch/FormData:
-    // e.preventDefault();
-    // const fd = new FormData(formEl);
-    // igFiles.forEach((f, i) => fd.append('photos', f, f.name || `foto_${i+1}.jpg`));
-    // await fetch('/api/publicar', { method:'POST', body: fd });
-    // closeModal();
-  });
 
-  // Submit final
-  document.getElementById("bookForm").addEventListener("submit", function (e) {
-    e.preventDefault();
-    // acá iría persistencia real (Supabase, etc.)
-    alert("¡Libro publicado exitosamente!");
-    closeModal();
-  });
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    if (!user) {
+      alert("Tenés que iniciar sesión para publicar.");
+      return;
+    }
+
+    const book = {
+      owner: user.id,
+      title: document.getElementById("bookTitle").value.trim(),
+      author: document.getElementById("bookAuthor").value.trim(),
+      genre: document.getElementById("bookGenre").value.trim() || null,
+      details: document.getElementById("bookDescription").value.trim() || null,
+      condition: document.getElementById("bookCondition").value,
+      language: getFinalLanguage(),
+      cover_type: document.getElementById("bookCover").value,
+      price: Number(document.getElementById("bookPrice").value),
+      is_tradable: document.getElementById("bookExchange").value === "si",
+      // currency, status, created_at se van por default en tu schema
+    };
+
+    try {
+      // 1) Insert en books
+      const { data: inserted, error: insErr } = await supabase
+        .from("books")
+        .insert(book)
+        .select("id")
+        .single();
+      if (insErr) throw insErr;
+      const bookId = inserted.id;
+
+      // 2) Upload imágenes al Storage
+      const uploaded = await uploadBookImages(user.id, bookId, igFiles);
+
+      // 3) Guardar filas en book_images
+      await insertBookImages(bookId, uploaded);
+
+      // 4) Renderizar card (usando la primera imagen como portada visual)
+      const publisher = await getCurrentProfileName();
+      renderMyBookCard({
+        id: bookId,
+        title: book.title,
+        price: book.price,
+        condition: book.condition,
+        cover_url: uploaded[0]?.url || null,
+        publisher,
+      });
+
+      alert("¡Libro publicado exitosamente!");
+      // reset mínimos
+      igFiles = [];
+      renderStage();
+      renderTray();
+      formEl.reset();
+      setStep(1);
+      closeModal();
+    } catch (err) {
+      console.error(err);
+      alert("Error al publicar el libro. Intentá de nuevo.");
+    }
+  }
 
   // init
   setStep(1);

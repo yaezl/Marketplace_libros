@@ -81,7 +81,35 @@
     }
 
     .ratio-3x4 {
-      aspect-ratio: 3/4;
+      --bs-aspect-ratio: calc(4 / 3 * 100%);
+    }
+
+    .clamp-2 {
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+
+    /* --- CARD RESPONSIVE FIX --- */
+
+    /* Por defecto (mobile / tablet): el precio va debajo */
+    .card .price-row {
+      display: flex;
+      flex-direction: column;
+      /* uno abajo del otro */
+      align-items: flex-start;
+      /* alineados a la izquierda */
+      gap: .25rem;
+    }
+
+    /* En pantallas grandes, vuelven a estar lado a lado */
+    @media (min-width: 992px) {
+      .card .price-row {
+        flex-direction: row;
+        align-items: center;
+        justify-content: space-between;
+      }
     }
 
     .obj-cover {
