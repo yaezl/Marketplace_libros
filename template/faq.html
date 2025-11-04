@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="es" data-bs-theme="light">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Bookea</title>
+
+    <!-- Bootstrap / Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"
+        crossorigin="anonymous" />
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet" />
+
+    <link rel="icon" type="image/png" href="/assets/img/bookealogo.png" />
+    <link rel="stylesheet" href="/assets/css/custom.css" />
+</head>
+
+<body>
+    <!-- TOPBAR móvil -->
+    <header class="topbar d-lg-none">
+        <div class="container-fluid d-flex align-items-center justify-content-between py-2">
+            <button class="btn btn-outline-secondary rounded-4 d-inline-flex d-lg-none" data-bs-toggle="offcanvas"
+                data-bs-target="#ocMenu" aria-controls="ocMenu" aria-label="Abrir menú">
+                <i class="bi bi-list"></i>
+            </button>
+            <div class="d-flex align-items-center gap-2">
+                <div class="logo-pill">
+                    <img src="/assets/img/bookealogo.png" alt="Bookea logo" />
+                </div>
+                <span class="fw-medium small text-secondary">Bookea</span>
+            </div>
+            <div class="d-flex align-items-center gap-2">
+                <button class="btn btn-outline-secondary rounded-4">
+                    <i class="bi bi-bell"></i>
+                </button>
+                <img src="/assets/img/bookealogo.png" width="32" height="32" class="rounded-circle border"
+                    alt="perfil" />
+            </div>
+        </div>
+    </header>
+
+    <div class="container-fluid">
+        <div class="row">
+            <!-- SIDEBAR desktop -->
+            <aside class="col-lg-2 d-none d-lg-block sidebar">
+                <div class="d-flex align-items-center gap-2 mb-3">
+                    <div class="logo-pill">
+                        <img src="/assets/img/bookealogo.png" alt="Bookea logo" />
+                    </div>
+                    <div>
+                        <div class="fw-semibold small">Bookea</div>
+                        <div class="text-secondary small">Hola, invitado</div>
+                    </div>
+                </div>
+
+                <nav class="nav flex-column gap-1">
+                    <a class="nav-link" href="/index.html"><i class="bi bi-compass"></i> Descubre</a>
+                    <a class="nav-link" href="#" data-auth-required><i class="bi bi-heart"></i> Mi Wishlist</a>
+                    <a class="nav-link" href="/template/publicacion_libro.html" data-auth-required><i
+                            class="bi bi-journal-text"></i> Mis publicaciones</a>
+
+                    <div class="mt-3 border-top pt-3">
+                       
+                        <a class="nav-link active" href="/template/faq.html"><i class="bi bi-life-preserver"></i>
+                            Preguntas Frecuentes</a>
+                        <a class="nav-link" href="#"><i class="bi bi-box-arrow-right"></i> Cerrar sesión</a>
+                    </div>
+                </nav>
+            </aside>
+
+            <!-- OFFCANVAS mobile -->
+            <div class="offcanvas offcanvas-start" tabindex="-1" id="ocMenu" aria-labelledby="ocMenuLabel">
+                <div class="offcanvas-header">
+                    <h5 class="offcanvas-title d-flex align-items-center gap-2" id="ocMenuLabel">
+                        <div class="logo-pill" style="width: 32px; height: 32px">
+                            <img src="/assets/img/bookealogo.png" alt="Bookea logo"
+                                style="width: 28px; height: 28px; object-fit: contain" />
+                        </div>
+                        Marketplace
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Cerrar"></button>
+                </div>
+                <div class="offcanvas-body">
+                    <nav class="nav flex-column gap-1">
+                        <a class="nav-link" href="/index.html"><i class="bi bi-compass"></i> Descubre</a>
+                        <a class="nav-link" href="#"><i class="bi bi-grid" data-auth-required></i> Wishlist</a>
+                        <a class="nav-link" href="/template/publicacion_libro.html"><i class="bi bi-collection"
+                                data-auth-required></i> Mis
+                            Publicaciones</a>
+                        <div class="mt-3 border-top pt-3">
+                           
+                            <a class="nav-link active" href="/template/faq.html"><i class="bi bi-life-preserver"></i>
+                                Preguntas Frecuentes</a>
+                            <a class="nav-link" href="#"><i class="bi bi-box-arrow-right"></i> Cerrar sesión</a>
+                        </div>
+                    </nav>
+                </div>
+            </div>
+
+            <!-- MAIN -->
+            <main class="col-12 col-lg-10 px-3 px-lg-4 py-3">
+                <!-- Encabezado -->
+                <div class="d-flex align-items-center justify-content-between">
+                    <h3 class="m-0 d-flex align-items-center gap-2">
+                        Preguntas Frecuentes
+                    </h3>
+                </div>
+                <br />
+
+                <!-- Chips de categorías (debajo del título) -->
+                <div class="faq-chips d-flex flex-wrap gap-2">
+                    <button class="chip" data-cat="all">Todas</button>
+                    <button class="chip" data-cat="publicaciones">
+                        <i class="bi bi-journal-text me-1"></i>Publicaciones
+                    </button>
+                    <button class="chip" data-cat="wishlist">
+                        <i class="bi bi-heart me-1"></i>Wishlist
+                    </button>
+                    <button class="chip" data-cat="cuenta">
+                        <i class="bi bi-person me-1"></i>Cuenta
+                    </button>
+                    <button class="chip" data-cat="pagos">
+                        <i class="bi bi-cash-coin me-1"></i>Pagos/Envíos
+                    </button>
+                    <button class="chip" data-cat="soporte">
+                        <i class="bi bi-headset me-1"></i>Soporte
+                    </button>
+                </div>
+
+                <!-- Accordion FAQs -->
+                <br />
+                <!-- Accordion FAQs -->
+                <div class="accordion" id="faqAccordion">
+                    <!-- PUBLICACIONES -->
+                    <div class="accordion-item" data-cat="publicaciones">
+                        <h2 class="accordion-header" id="q1h">
+                            <button class="accordion-button" type="button" data-bs-toggle="collapse"
+                                data-bs-target="#q1" aria-expanded="true" aria-controls="q1">
+                                ¿Cómo publico un libro?
+                            </button>
+                        </h2>
+                        <div id="q1" class="accordion-collapse collapse show" aria-labelledby="q1h"
+                            data-bs-parent="#faqAccordion">
+                            <div class="accordion-body">
+                                Ingresá a <strong>Mis publicaciones</strong> y tocá el botón
+                                <i class="bi bi-plus-lg"></i> flotante. Completá título,
+                                autor, estado (Nuevo / Como nuevo / Usado), precio y fotos.
+                                Guardá y ¡listo! Tu publicación aparecerá en
+                                <strong>Descubre</strong> y en tu perfil.
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="accordion-item" data-cat="publicaciones">
+                        <h2 class="accordion-header" id="q2h">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                                data-bs-target="#q2">
+                                ¿Qué fotos conviene subir?
+                            </button>
+                        </h2>
+                        <div id="q2" class="accordion-collapse collapse" aria-labelledby="q2h"
+                            data-bs-parent="#faqAccordion">
+                            <div class="accordion-body">
+                                Usá al menos 3 fotos nítidas: tapa, contratapa y una página
+                                interior. Evitá reflejos y recortes. El primer archivo será la
+                                <em>portada</em> de la tarjeta (podés reordenarlas).
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="accordion-item" data-cat="publicaciones">
+                        <h2 class="accordion-header" id="q3h">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                                data-bs-target="#q3">
+                                ¿Cómo defino el estado del libro?
+                            </button>
+                        </h2>
+                        <div id="q3" class="accordion-collapse collapse" aria-labelledby="q3h"
+                            data-bs-parent="#faqAccordion">
+                            <div class="accordion-body">
+                                Elegí entre las opciones sugeridas al momento de publicar un
+                                libro. Si tiene detalles (subrayados, tapas marcadas),
+                                aclarálo en la descripción para generar confianza.
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="accordion-item" data-cat="publicaciones">
+                        <h2 class="accordion-header" id="q4h">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                                data-bs-target="#q4">
+                                ¿Puedo editar una publicación?
+                            </button>
+                        </h2>
+                        <div id="q4" class="accordion-collapse collapse" aria-labelledby="q4h"
+                            data-bs-parent="#faqAccordion">
+                            <div class="accordion-body">
+                                Sí, desde <strong>Mis publicaciones</strong> podés editar
+                                precio, descripción, fotos o pausar/activar cuando quieras.
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- WISHLIST -->
+                    <div class="accordion-item" data-cat="wishlist">
+                        <h2 class="accordion-header" id="q5h">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                                data-bs-target="#q5">
+                                ¿Cómo agrego un libro a mi Wishlist?
+                            </button>
+                        </h2>
+                        <div id="q5" class="accordion-collapse collapse" aria-labelledby="q5h"
+                            data-bs-parent="#faqAccordion">
+                            <div class="accordion-body">
+                                En la tarjeta del libro tocá el ícono
+                                <i class="bi bi-plus-lg"></i>. Para ver tu lista completa, entrá
+                                a <strong>Mi Wishlist</strong> desde el menú.
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="accordion-item" data-cat="wishlist">
+                        <h2 class="accordion-header" id="q6h">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                                data-bs-target="#q6">
+                                ¿Recibo avisos cuando aparece un libro que deseo?
+                            </button>
+                        </h2>
+                        <div id="q6" class="accordion-collapse collapse" aria-labelledby="q6h"
+                            data-bs-parent="#faqAccordion">
+                            <div class="accordion-body">
+                                Sí. Por defecto, las notificaciones estana activas dentro del
+                                sitio web por donde te notificaremos cuando haya publicaciones
+                                coincidentes con tu wishlist.
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- CUENTA -->
+                    <div class="accordion-item" data-cat="cuenta">
+                        <h2 class="accordion-header" id="q7h">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                                data-bs-target="#q7">
+                                Olvidé mi contraseña, ¿cómo la recupero?
+                            </button>
+                        </h2>
+                        <div id="q7" class="accordion-collapse collapse" aria-labelledby="q7h"
+                            data-bs-parent="#faqAccordion">
+                            <div class="accordion-body">
+                                Desde <strong>Iniciar sesión</strong> elegí
+                                <em>“¿Olvidaste tu contraseña?”</em> y seguí el enlace que te
+                                enviamos al correo registrado.
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="accordion-item" data-cat="cuenta">
+                        <h2 class="accordion-header" id="q8h">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                                data-bs-target="#q8">
+                                ¿Cómo cambio mi nombre, foto o datos de contacto?
+                            </button>
+                        </h2>
+                        <div id="q8" class="accordion-collapse collapse" aria-labelledby="q8h"
+                            data-bs-parent="#faqAccordion">
+                            <div class="accordion-body">
+                                En <strong>Perfil</strong> podés actualizar tus datos del
+                                perfil. Recorda que estas son visibles a todo el publico.
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- SEGURIDAD -->
+                    <div class="accordion-item" data-cat="seguridad">
+                        <h2 class="accordion-header" id="q9h">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                                data-bs-target="#q9">
+                                Recomendaciones de seguridad para comprar/vender
+                            </button>
+                        </h2>
+                        <div id="q9" class="accordion-collapse collapse" aria-labelledby="q9h"
+                            data-bs-parent="#faqAccordion">
+                            <div class="accordion-body">
+                                Acordá puntos de encuentro públicos, verificá el estado real
+                                del libro y conservá comprobantes del pago. No compartas
+                                contraseñas ni códigos de verificación. Desde Bookea tratamos
+                                de mantener una comunidad confiable.
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- PAGOS / ENVÍOS -->
+                    <div class="accordion-item" data-cat="pagos">
+                        <h2 class="accordion-header" id="q10h">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                                data-bs-target="#q10">
+                                ¿Cómo coordino pago y envío?
+                            </button>
+                        </h2>
+                        <div id="q10" class="accordion-collapse collapse" aria-labelledby="q10h"
+                            data-bs-parent="#faqAccordion">
+                            <div class="accordion-body">
+                                Bookea facilita el contacto entre partes. El medio de pago y
+                                el envío se coordinan por chat/mensaje según acuerden vendedor
+                                y comprador.
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="accordion-item" data-cat="pagos">
+                        <h2 class="accordion-header" id="q11h">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                                data-bs-target="#q11">
+                                ¿Puedo cambiar el precio después de publicar?
+                            </button>
+                        </h2>
+                        <div id="q11" class="accordion-collapse collapse" aria-labelledby="q11h"
+                            data-bs-parent="#faqAccordion">
+                            <div class="accordion-body">
+                                Sí, desde <strong>Mis publicaciones</strong> podés modificar
+                                el precio y avisaremos a interesados que lo tengan en su
+                                wishlist.
+                            </div>
+                        </div>
+                    </div>
+                    <!-- SOPORTE -->
+                    <div class="accordion-item" data-cat="soporte">
+                        <h2 class="accordion-header" id="q12h">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                                data-bs-target="#q12">
+                                ¿Necesitas ayuda personalizada?
+                            </button>
+                        </h2>
+                        <div id="q12" class="accordion-collapse collapse" aria-labelledby="q12h"
+                            data-bs-parent="#faqAccordion">
+                            <div class="accordion-body">
+                                Escribinos a 
+                                <a href="mailto:bookea.equipo@gmail.com">bookea.equipo@gmail.com</a>
+                                y te respondemos a la brevedad. 
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <!-- FAB (oculto acá a propósito) -->
+    <a href="#" class="fab d-none"><i class="bi bi-plus-lg fs-4"></i></a>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"
+        crossorigin="anonymous"></script>
+    <script>
+        // --- Filtro por categoría (+ texto si existiera #faqSearch) ---
+        const search = document.getElementById("faqSearch"); // puede no existir en esta página
+        const chips = [...document.querySelectorAll(".chip")];
+        const items = [
+            ...document.querySelectorAll("#faqAccordion .accordion-item"),
+        ];
+
+        let activeCat = "all";
+        function applyFilter() {
+            const q = (search && search.value ? search.value : "")
+                .trim()
+                .toLowerCase();
+            items.forEach((it) => {
+                const cat = it.getAttribute("data-cat");
+                const text = it.innerText.toLowerCase();
+                const okCat = activeCat === "all" || cat === activeCat;
+                const okText = !q || text.includes(q);
+                it.style.display = okCat && okText ? "" : "none";
+            });
+        }
+        if (search) search.addEventListener("input", applyFilter);
+
+        chips.forEach((c) => {
+            c.addEventListener("click", () => {
+                activeCat = c.dataset.cat;
+                chips.forEach((x) => x.classList.remove("btn", "btn-warning"));
+                c.classList.add("btn", "btn-warning");
+                applyFilter();
+            });
+        });
+        // estado inicial
+        document
+            .querySelector('[data-cat="all"]')
+            .classList.add("btn", "btn-warning");
+    </script>
+</body>
+
+</html>

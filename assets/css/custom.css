@@ -601,3 +601,53 @@
       outline: 2px solid var(--ml-amber-500);
       outline-offset: 2px;
     }
+
+
+    /* css par FAQ.HTML */
+    /* —— FAQ: chips / buscador / accordion —— */
+    /* —— FAQ: chips / buscador / accordion —— */
+.search-wrap .form-control {
+  background: #fff;
+  border-radius: 12px !important;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+}
+.search-wrap .input-group-text {
+  border-radius: 12px 0 0 12px !important;
+}
+
+.chip {
+  border: 1px solid var(--bs-border-color, #e5e7eb);
+  background: #fff;
+  border-radius: 999px;
+  padding: 6px 12px;
+  font-size: .875rem;
+  line-height: 1;
+  cursor: pointer;
+}
+.chip:hover { background: #f8f9fa; }
+
+/* estado “activo” (cuando JS le agrega .btn.btn-warning) */
+.chip.btn.btn-warning {
+  border-color: transparent;
+  color: #212529;
+}
+
+/* Accordion look */
+.accordion-button {
+  border-radius: 12px !important;
+}
+.accordion-item {
+  border: 0;
+  margin-bottom: .5rem;
+}
+.accordion-body {
+  background: #fff;
+  border-radius: 0 0 12px 12px;
+}
+
+/* Tarjeta soporte */
+.card .logo-pill {
+  display:flex; align-items:center; justify-content:center;
+  background:#f0f3f5; border-radius:14px; width:48px; height:48px;
+}
+
