@@ -1,5 +1,4 @@
 // /js/wishlist.js
-// Asegurate que esta ruta sea la misma que usa tu main.js
 import { supabase } from '../supabaseClient.js';
 
 /* ===================== DOM refs (con guardias) ===================== */
