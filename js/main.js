@@ -29,14 +29,12 @@ function renderBookCard({ book, container, isOwner }) {
     <div class="card h-100 shadow-sm border-0 rounded-3">
       <div class="position-relative">
         <div class="ratio ratio-3x4">
-          <img src="${cover}" alt="${
-    book.title
-  }" class="w-100 h-100 object-fit-cover">
+          <img src="${cover}" alt="${book.title
+    }" class="w-100 h-100 object-fit-cover">
         </div>
 
-        ${
-          isOwner
-            ? `
+        ${isOwner
+      ? `
         <div class="position-absolute top-0 end-0 p-1">
           <div class="dropdown">
             <button class="btn btn-light btn-sm rounded-circle border-0" data-bs-toggle="dropdown" aria-expanded="false">
@@ -51,17 +49,15 @@ function renderBookCard({ book, container, isOwner }) {
             </ul>
           </div>
         </div>`
-            : ""
-        }
+      : ""
+    }
       </div>
 
       <div class="card-body p-2">
-        <div class="fw-semibold text-truncate" title="${book.title}">${
-    book.title
-  }</div>
-        <div class="small text-secondary text-truncate">${
-          book.author ?? ""
-        }</div>
+        <div class="fw-semibold text-truncate" title="${book.title}">${book.title
+    }</div>
+        <div class="small text-secondary text-truncate">${book.author ?? ""
+    }</div>
         <div class="small text-muted">Publicado por <span class="fw-medium">${publisher}</span></div>
 
         <div class="price-row mt-2">
@@ -75,11 +71,9 @@ function renderBookCard({ book, container, isOwner }) {
             <i class="bi bi-heart"></i>
           </button>
           <!-- Ver más (a implementar) -->
-          <button class="btn btn-sm btn-primary flex-grow-1" disabled data-view="${
-            book.id
-          }">
+          <a class="btn btn-sm btn-outline-primary" href="/template/libro.html?id=${book.id}">
             Ver más
-          </button>
+          </a>
         </div>
       </div>
     </div>

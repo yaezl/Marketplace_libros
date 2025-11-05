@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="es" data-bs-theme="light">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Publicación • Bookea</title>
+
+  <!-- Bootstrap + Icons -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" crossorigin="anonymous" />
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet" />
+  <link rel="icon" type="image/png" href="/assets/img/bookealogo.png" />
+
+  <!-- Estilos del proyecto -->
+  <link rel="stylesheet" href="/assets/css/custom.css">
+
+  <!-- Mini estilos locales para la vista de libro (respetan tu paleta) -->
+  <style>
+    .gallery-main {
+    position: relative;
+    background: #fff;
+    border: 1px solid var(--ml-neutral-200);
+    border-radius: var(--radius-xl);
+    overflow: hidden;
+    aspect-ratio: 3/4;
+    max-height: 450px; /* 👈 limita alto */
+    box-shadow: 0 1px 8px rgba(0, 0, 0, .05);
+    }
+    .gallery-main img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    }
+
+    .gallery-thumbs{display:flex;gap:.5rem;overflow-x:auto;padding:.5rem 0}
+    .gallery-thumb{flex:0 0 auto;width:84px;height:84px;border-radius:10px;overflow:hidden;border:2px solid transparent;cursor:pointer;background:#fff}
+    .gallery-thumb.active{border-color:var(--ml-amber-500)}
+    .info-card{background:#fff;border:1px solid var(--ml-neutral-200);border-radius:var(--radius-xl);padding:1.25rem;box-shadow:0 1px 8px rgba(0,0,0,.05)}
+    .price-tag{font-size:1.6rem;font-weight:700;color:#198754}
+    .detail-row{display:flex;gap:1rem;padding:.5rem 0;border-bottom:1px solid var(--ml-neutral-200)}
+    .detail-row:last-child{border-bottom:0}
+    .detail-label{color:var(--ml-neutral-700);min-width:120px;font-weight:500}
+  </style>
+</head>
+
+<body>
+  <!-- Barra visible solo si NO hay sesión -->
+  <div class="solo-publico d-flex justify-content-end align-items-center gap-2 p-2">
+    <button id="btn-login" class="btn btn-outline-secondary solo-publico">Iniciar sesión</button>
+    <button id="btn-register" class="btn btn-dark solo-publico">Registrarse</button>
+  </div>
+
+  <!-- TOPBAR SOLO MÓVIL -->
+  <header class="topbar d-lg-none">
+    <div class="container-fluid d-flex align-items-center justify-content-between py-2">
+      <button class="btn btn-outline-secondary rounded-4 d-inline-flex d-lg-none" data-bs-toggle="offcanvas"
+        data-bs-target="#ocMenu" aria-controls="ocMenu" aria-label="Abrir menú">
+        <i class="bi bi-list"></i>
+      </button>
+      <div class="d-flex align-items-center gap-2">
+        <div class="logo-pill">
+          <img src="/assets/img/bookealogo.png" alt="Bookea logo" />
+        </div>
+        <span class="fw-medium small text-secondary">Bookea</span>
+      </div>
+
+      <div class="d-flex align-items-center gap-2">
+        <button class="btn btn-outline-secondary rounded-4 solo-logueado">
+          <i class="bi bi-bell"></i>
+        </button>
+        <a href="/template/perfil.html" class="d-inline-block">
+          <img src="/assets/img/bookealogo.png" width="32" height="32" class="rounded-circle border solo-logueado" alt="perfil" />
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <div class="container-fluid">
+    <div class="row">
+      <!-- SIDEBAR (lg+) -->
+      <aside class="col-lg-2 d-none d-lg-block sidebar">
+        <div class="d-flex align-items-center gap-2 mb-3">
+          <div class="logo-pill">
+            <img src="/assets/img/bookealogo.png" alt="Bookea logo" />
+          </div>
+          <div>
+            <div class="fw-semibold small">Bookea</div>
+            <div class="text-secondary small" id="saludo-usuario">Hola, invitado</div>
+          </div>
+        </div>
+
+        <nav class="nav flex-column gap-1">
+          <a class="nav-link" href="/index.html"><i class="bi bi-compass"></i> Descubre</a>
+          <a class="nav-link" href="/template/wishlist.html" data-auth-required><i class="bi bi-heart"></i> Mi Wishlist</a>
+          <a class="nav-link" href="/template/publicacion_libro.html" data-auth-required><i class="bi bi-journal-text"></i> Mis publicaciones</a>
+          <div class="mt-3 border-top pt-3">
+            <a class="nav-link" href="/template/faq.html"><i class="bi bi-life-preserver"></i> Preguntas Frecuentes</a>
+            <a class="nav-link solo-logueado" href="#" id="btn-logout"><i class="bi bi-box-arrow-right"></i> Cerrar sesión</a>
+          </div>
+        </nav>
+      </aside>
+
+      <!-- OFFCANVAS (sidebar móvil) -->
+      <div class="offcanvas offcanvas-start" tabindex="-1" id="ocMenu" aria-labelledby="ocMenuLabel">
+        <div class="offcanvas-header">
+          <h5 class="offcanvas-title offc-brand" id="ocMenuLabel">
+            <span class="logo-pill" style="width: 32px; height: 32px">
+              <img src="/assets/img/bookealogo.png" alt="Bookea logo" style="width: 28px; height: 28px; object-fit: contain" />
+            </span>
+            <span class="title">Marketplace</span>
+          </h5>
+          <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Cerrar"></button>
+        </div>
+        <div class="offcanvas-body">
+          <nav class="nav flex-column gap-1">
+            <a class="nav-link" href="/index.html"><i class="bi bi-compass"></i> Descubre</a>
+            <a class="nav-link" href="/template/wishlist.html"><i class="bi bi-grid" data-auth-required></i> Wishlist</a>
+            <a class="nav-link" href="/template/publicacion_libro.html"><i class="bi bi-collection" data-auth-required></i> Mis Publicaciones</a>
+            <div class="divider"></div>
+            <a class="nav-link" href="/template/faq.html"><i class="bi bi-life-preserver"></i> Preguntas Frecuentes</a>
+            <a class="nav-link solo-logueado" href="#"><i class="bi bi-box-arrow-right"></i> Cerrar sesión</a>
+          </nav>
+        </div>
+      </div>
+
+      <!-- MAIN -->
+      <main class="col-12 col-lg-10 px-3 px-lg-4 py-3">
+        <!-- Barra superior desktop: igual a index -->
+        <div class="d-none d-lg-flex align-items-center justify-content-between mb-3">
+          <form class="flex-grow-1 me-3" role="search">
+            <div class="input-group search-wrap">
+              <span class="input-group-text bg-white border-0"><i class="bi bi-search text-secondary"></i></span>
+              <input type="text" class="form-control border-0" placeholder="Encuentra tu proxima lectura..." />
+            </div>
+          </form>
+          <div class="d-flex align-items-center gap-2">
+            <button class="btn btn-outline-secondary rounded-4 solo-logueado"><i class="bi bi-bell"></i></button>
+            <a href="/template/perfil.html" class="d-inline-block">
+              <img src="/assets/img/bookealogo.png" width="32" height="32" class="rounded-circle border solo-logueado" alt="perfil" />
+            </a>
+          </div>
+        </div>
+
+        <!-- Breadcrumb -->
+        <nav aria-label="breadcrumb" class="mb-3">
+          <ol class="breadcrumb small">
+            <li class="breadcrumb-item"><a href="/index.html">Descubre</a></li>
+            <li id="crumbTitle" class="breadcrumb-item active">Publicación</li>
+          </ol>
+        </nav>
+
+        <div class="row g-4">
+          <!-- Galería -->
+          <div class="col-12 col-lg-5">
+            <div class="gallery-main">
+              <img id="mainImage" alt="Portada del libro" src="https://placehold.co/600x800?text=Sin+foto" />
+            </div>
+            <div id="thumbs" class="gallery-thumbs mt-3"></div>
+          </div>
+
+          <!-- Info -->
+          <div class="col-12 col-lg-7">
+            <div class="info-card mb-3">
+              <div class="d-flex justify-content-between align-items-start mb-2">
+                <div>
+                  <h1 id="bookTitle" class="h4 fw-bold mb-1">—</h1>
+                  <p id="bookAuthor" class="text-secondary mb-0">—</p>
+                </div>
+                <button class="btn btn-secondary" id="wishlistBtn" title="Agregar a wishlist">
+                  <i class="bi bi-heart"></i>
+                </button>
+              </div>
+
+              <div id="tags" class="d-flex flex-wrap gap-2 mb-3"></div>
+
+              <div class="d-flex align-items-center gap-3 mb-3">
+                <div id="price" class="price-tag">—</div>
+              </div>
+
+              <div class="detail-row"><div class="detail-label">Estado</div><div id="detailCondition" class="detail-value">—</div></div>
+              <div class="detail-row"><div class="detail-label">Detalles</div><div id="detailDesc" class="detail-value">—</div></div>
+              <div class="detail-row"><div class="detail-label">Género</div><div id="detailGenre" class="detail-value">—</div></div>
+              <div class="detail-row"><div class="detail-label">Idioma</div><div id="detailLang" class="detail-value">—</div></div>
+              <div class="detail-row"><div class="detail-label">Tipo de tapa</div><div id="detailCover" class="detail-value">—</div></div>
+              <div class="detail-row"><div class="detail-label">Intercambio</div><div id="detailTrade" class="detail-value">—</div></div>
+              <div class="detail-row"><div class="detail-label">Ubicación</div><div id="detailLoc" class="detail-value">—</div></div>
+
+              <hr class="my-3" />
+
+              <h3 class="h6 fw-semibold mb-2">Descripción</h3>
+              <p id="description" class="text-secondary mb-0">—</p>
+
+              <div class="d-flex gap-2 mt-4">
+                <button id="contactBtn" class="btn btn-dark flex-grow-1">
+                  <i class="bi bi-chat-dots me-2"></i> Contactar vendedor
+                </button>
+                <button id="shareBtn" class="btn btn-secondary">
+                  <i class="bi bi-share"></i>
+                </button>
+              </div>
+            </div>
+
+            <!-- Vendedor -->
+            <a id="sellerCard" class="info-card d-flex align-items-center gap-3 text-decoration-none">
+              <img id="sellerAvatar" class="rounded-4 border" width="56" height="56" alt="Vendedor" />
+              <div class="flex-grow-1">
+                <div id="sellerName" class="fw-semibold mb-1">—</div>
+                <div class="small text-secondary">Miembro</div>
+              </div>
+            </a>
+          </div>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <!-- Bootstrap bundle -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js" crossorigin="anonymous"></script>
+
+  <!-- Supabase + scripts del proyecto -->
+  <script type="module">
+    import { supabase } from "/supabaseClient.js";
+    import "/js/authGuard.js";    // para data-auth-required & estado de sesión
+    import "/js/libro.js";        // carga los datos de la publicación
+  </script>
+
+  <script>
+    // Consistencia con index: FAB abre Mis publicaciones
+    document.getElementById('fabFromLibro')?.addEventListener('click', (e) => {
+      e.preventDefault();
+      sessionStorage.setItem('open-publish', '1');
+      window.location.href = '/template/publicacion_libro.html?open=publish';
+    });
+  </script>
+</body>
+</html>
