@@ -664,18 +664,25 @@ import { supabase } from "../supabaseClient.js";
     }
 
     const book = {
-      owner: user.id,
-      title: document.getElementById("bookTitle").value.trim(),
-      author: document.getElementById("bookAuthor").value.trim(),
-      genre: document.getElementById("bookGenre").value.trim() || null,
-      details: document.getElementById("bookDescription").value.trim() || null,
-      condition: document.getElementById("bookCondition").value,
-      language: getFinalLanguage(),
-      cover_type: document.getElementById("bookCover").value,
-      price: Number(document.getElementById("bookPrice").value),
-      is_tradable: document.getElementById("bookExchange").value === "si",
-      // currency, status, created_at se van por default en tu schema
-    };
+  owner: user.id,
+  title: document.getElementById("bookTitle").value.trim(),
+  author: document.getElementById("bookAuthor").value.trim(),
+  genre: document.getElementById("bookGenre").value.trim() || null,
+
+  // esto ya lo usabas para la descripción que viene de Google/Manual del paso 1
+  details: document.getElementById("bookDescription").value.trim() || null,
+
+  // NUEVO: descripción manual del Paso 2 -> columna books.description
+  description: document.getElementById("bookDescriptionManual")?.value.trim() || null,
+
+  condition: document.getElementById("bookCondition").value,
+  language: getFinalLanguage(),
+  cover_type: document.getElementById("bookCover").value,
+  price: Number(document.getElementById("bookPrice").value),
+  is_tradable: document.getElementById("bookExchange").value === "si",
+  // currency, status, created_at: defaults del schema
+};
+
 
     try {
       // 1) Insert en books
