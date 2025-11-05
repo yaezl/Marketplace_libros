@@ -44,8 +44,12 @@
         <button class="btn btn-outline-secondary rounded-4 solo-logueado">
           <i class="bi bi-bell"></i>
         </button>
-        <img src="assets/img/bookealogo.png" width="32" height="32" class="rounded-circle border solo-logueado"
-          alt="perfil" />
+        <!-- PERFIL SECCION -->
+        <a href="/template/perfil.html" class="d-inline-block">
+  <img src="assets/img/bookealogo.png" width="32" height="32"
+       class="rounded-circle border solo-logueado" alt="perfil" />
+</a>
+
       </div>
     </div>
     <form class="px-2 pb-2 d-lg-none" role="search">
@@ -53,7 +57,8 @@
         <span class="input-group-text bg-white border-0">
           <i class="bi bi-search text-secondary"></i>
         </span>
-        <input type="text" class="form-control border-0" placeholder="Encuentra tu proxima lectura..." />
+       <div id="search-container"></div>
+
       </div>
     </form>
   </header>
@@ -130,40 +135,22 @@
           <form class="flex-grow-1 me-3" role="search">
             <div class="input-group search-wrap">
               <span class="input-group-text bg-white border-0"><i class="bi bi-search text-secondary"></i></span>
-              <input type="text" class="form-control border-0" placeholder="Encuentra tu proxima lectura..." />
+               <div id="search-container"></div>
             </div>
           </form>
           <div class="d-flex align-items-center gap-2">
             <button class="btn btn-outline-secondary rounded-4 solo-logueado">
               <i class="bi bi-bell"></i>
             </button>
-            <img src="assets/img/bookealogo.png" width="32" height="32" class="rounded-circle border solo-logueado"
-              alt="perfil" />
+            <!-- perfil seccion -->
+            <a href="/template/perfil.html" class="d-inline-block">
+  <img src="/assets/img/bookealogo.png" width="32" height="32"
+       class="rounded-circle border solo-logueado" alt="perfil" />
+</a>
+
           </div>
         </div>
 
-        <!-- Grid de libros -->
-        <!--  <div class="row g-3 row-cols-2 row-cols-md-3 row-cols-xl-5"> -->
-        <!-- Card – duplicá y cambiá datos a gusto -->
-        <!--    <div class="col">
-            <article class="book-card h-100">
-              <div class="ratio-3x4">
-                <img class="obj-cover"
-                  src="https://images.unsplash.com/photo-1524995997946-a1c2e315a42f?q=80&w=900&auto=format"
-                  alt="Clean Code" />
-              </div>
-              <div class="p-2">
-                <div class="small text-secondary">Robert C. Martin</div>
-                <h3 class="fs-6 mb-1">Clean Code</h3>
-                <div class="d-flex justify-content-between align-items-center">
-                  <span class="fw-semibold">$ 18.500</span>
-                  <span class="badge-estado px-2 py-1">Como nuevo</span>
-                </div>
-              </div>
-            </article>
-          </div>
-
-        </div> -->
 
         <!-- Publicaciones dinámicas desde Supabase (AGREGADO) -->
         <div class="container my-4">
@@ -225,6 +212,17 @@
       window.location.href = '/template/publicacion_libro.html?open=publish';
     });
   </script>
+  <script>
+  // Cargar el buscador desde buscador.html
+  fetch('/buscador.html')
+    .then(res => res.text())
+    .then(html => {
+      document.getElementById('search-container').innerHTML = html;
+    })
+    .catch(err => console.error('Error cargando buscador:', err));
+</script>
+<script type="module" src="/js/search.js"></script>
+
 </body>
 
 </html>

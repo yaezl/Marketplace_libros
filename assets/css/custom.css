@@ -651,3 +651,53 @@
   background:#f0f3f5; border-radius:14px; width:48px; height:48px;
 }
 
+/* css PERFIL  */
+/* Perfil */
+.card { border-radius: 14px; }
+#pf-avatar { object-fit: cover; }
+.help-card { border: 1px solid var(--bs-border-color,#e5e7eb); }
+.help-card .help-icon { width: 44px; height: 44px; background: #f3f4f6; color: #374151; }
+/* Hover en avatar (perfil) */
+a[href*="perfil.html"] img,
+img.solo-logueado {
+  transition: all 0.25s ease;
+}
+
+a[href*="perfil.html"] img:hover,
+img.solo-logueado:hover {
+  background-color: #fff8e1; /* amarillo claro */
+  box-shadow: 0 0 0 3px #ffe082 inset;
+  transform: scale(1.05);
+  cursor: pointer;
+}
+/* Avatar del perfil: mismo tamaño visual que la campanita */
+a[href*="perfil.html"] img,
+img.solo-logueado {
+  width: 40px !important;
+  height: 40px !important;
+  padding: 6px;
+  border-radius: 12px;
+  transition: all 0.25s ease;
+ 
+}
+
+/* Hover */
+a[href*="perfil.html"] img:hover,
+img.solo-logueado:hover {
+  background-color: #fff8e1; /* amarillo claro */
+  box-shadow: 0 0 0 3px #ffe082 inset;
+  transform: scale(1.05);
+  cursor: pointer;
+}
+
+/* Toast de confirmación */
+#bookea-toast {
+  background-color: #fbbf24 !important;  /* Amarillo Bookea */
+  color: #212529 !important;
+  border-radius: 12px;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+}
+#bookea-toast .btn-close-white {
+  filter: invert(0) !important;
+}
+
