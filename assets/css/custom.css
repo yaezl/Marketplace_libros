@@ -701,3 +701,36 @@ img.solo-logueado:hover {
   filter: invert(0) !important;
 }
 
+/* ===== Wishlist (scoped) – Tabs con look de botón negro -> amarillo ===== */
+#wishlist .nav-pills .nav-link{
+  border-radius: 999px;
+  background: var(--ml-neutral-900); /* negro del sistema */
+  color: #fff;
+  border: 1px solid transparent;
+  padding: .45rem .9rem;
+  transition: all .15s ease-in-out;
+}
+#wishlist .nav-pills .nav-link:hover{
+  background-color: #f0de8d;     /* amarillo Bookea */
+  color: #1a1a1a;
+}
+#wishlist .nav-pills .nav-link:focus{
+  box-shadow: 0 0 0 .2rem rgba(218, 218, 221, 0.35);
+}
+#wishlist .nav-pills .nav-link.active{
+  background: var(--ml-amber-500);
+  color: #1a1a1a;
+  border-color: var(--ml-amber-300);
+  box-shadow: 0 2px 8px rgba(0,0,0,.06);
+}
+/* Wishlist: acciones (⋮) dentro de cada card */
+#wishlist .book-card{ 
+  position: relative;           /* para que el dropdown se posicione dentro */
+  overflow: visible;            /* por si la card tiene border-radius, que no recorte el menú */
+}
+#wishlist .book-card .card-actions{
+  position: absolute;
+  top: .5rem;
+  right: .5rem;
+  z-index: 2;
+}

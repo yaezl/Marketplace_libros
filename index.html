@@ -83,7 +83,7 @@
 
         <nav class="nav flex-column gap-1">
           <a class="nav-link active" href="index.html"><i class="bi bi-compass"></i> Descubre</a>
-          <a class="nav-link" href="#" data-auth-required>
+          <a class="nav-link" href="template/wishlist.html" data-auth-required>
             <i class="bi bi-heart"></i> Mi Wishlist
           </a>
           <a class="nav-link" href="template/publicacion_libro.html" data-auth-required>
@@ -115,7 +115,7 @@
         <div class="offcanvas-body">
           <nav class="nav flex-column gap-1">
             <a class="nav-link active" href="index.html"><i class="bi bi-compass"></i> Descubre</a>
-            <a class="nav-link" href="#"><i class="bi bi-grid" data-auth-required></i> Wishlist</a>
+            <a class="nav-link" href="/template/wishlist.html"><i class="bi bi-grid" data-auth-required></i> Wishlist</a>
             <a class="nav-link" href="template/publicacion_libro.html"><i class="bi bi-collection"
                 data-auth-required></i> Mis
               Publicaciones</a>
@@ -134,12 +134,13 @@
         <!-- Barra superior (solo desktop): buscador + iconos + perfil -->
         <div class="d-none d-lg-flex align-items-center justify-content-between mb-3">
           <form class="flex-grow-1 me-3" role="search">
-            <!--  BUSCADOR   
-            <div class="input-group search-wrap">
-              <span class="input-group-text bg-white border-0"><i class="bi bi-search text-secondary"></i></span>
-               <div id="search-container"></div>
-            </div> -->
-          </form>
+                        <div class="input-group search-wrap">
+                            <span class="input-group-text bg-white border-0"><i
+                                    class="bi bi-search text-secondary"></i></span>
+                            <input type="text" class="form-control border-0"
+                                placeholder="Encuentra tu proxima lectura..." />
+                        </div>
+                    </form>
           <div class="d-flex align-items-center gap-2">
             <button class="btn btn-outline-secondary rounded-4 solo-logueado">
               <i class="bi bi-bell"></i>
