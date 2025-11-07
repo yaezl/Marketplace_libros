@@ -1,5 +1,40 @@
 import { supabase } from "../supabaseClient.js";
 
+/* ----------- helpers ------------ */
+function humanize(s = "") {
+  return s.replace(/[_-]+/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
+}
+
+function toast(message, variant = "success") {
+  const wrap = document.getElementById("toastArea");
+  if (!wrap) return alert(message); // fallback si falta container
+
+  const el = document.createElement("div");
+  el.className = `toast align-items-center text-bg-${variant} border-0`;
+  el.setAttribute("role", "alert");
+  el.setAttribute("aria-live", "assertive");
+  el.setAttribute("aria-atomic", "true");
+  el.innerHTML = `
+    <div class="d-flex">
+      <div class="toast-body">${message}</div>
+      <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Cerrar"></button>
+    </div>
+  `;
+  wrap.appendChild(el);
+  const t = new bootstrap.Toast(el, { delay: 2500 });
+  t.show();
+  el.addEventListener("hidden.bs.toast", () => el.remove());
+}
+
+function finalizeMyBookCardCover(bookId, newUrl) {
+  const col = document.querySelector(`.col[data-book-id="${bookId}"]`);
+  if (!col) return;
+  const img = col.querySelector("[data-cover]");
+  if (img && newUrl) img.src = newUrl;
+  const badge = col.querySelector(".badge.text-bg-warning");
+  if (badge) badge.remove();
+}
+
 (() => {
   // ---------- Modal base ----------
   const modal = document.getElementById("bookModal");
@@ -171,6 +206,17 @@ import { supabase } from "../supabaseClient.js";
   });
 
   // ---------- Google Books ----------
+  // Placeholder 50x70 para thumbnails del autocomplete (SVG inline)
+  const PH_50x70 =
+    "data:image/svg+xml;utf8," +
+    encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" width="50" height="70">
+    <rect width="100%" height="100%" fill="#eee"/>
+    <text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle"
+          font-family="system-ui, -apple-system, Segoe UI, Roboto, Arial" font-size="8" fill="#888">
+      Sin portada
+    </text>
+  </svg>`);
+
   const API_BASE = "https://www.googleapis.com/books/v1/volumes";
   const searchInput = document.getElementById("searchBook");
   const resultsDiv = document.getElementById("autocompleteResults");
@@ -211,17 +257,13 @@ import { supabase } from "../supabaseClient.js";
   }
 
   function formatBookResult(item) {
-    const volumeInfo = item.volumeInfo || {};
-    const title = volumeInfo.title || "Sin título";
-    const authors = (volumeInfo.authors || ["Autor desconocido"]).join(", ");
-    const year = volumeInfo.publishedDate
-      ? volumeInfo.publishedDate.substring(0, 4)
-      : "";
+    const vi = item.volumeInfo || {};
+    const title = vi.title || "Sin título";
+    const authors = (vi.authors || ["Autor desconocido"]).join(", ");
+    const year = vi.publishedDate ? vi.publishedDate.substring(0, 4) : "";
     const thumbnail =
-      volumeInfo.imageLinks?.thumbnail ||
-      volumeInfo.imageLinks?.smallThumbnail ||
-      "https://via.placeholder.com/50x70?text=Sin+portada";
-    return { id: item.id, title, authors, year, thumbnail, volumeInfo };
+      vi.imageLinks?.thumbnail || vi.imageLinks?.smallThumbnail || PH_50x70; // 👈 local / data-URI, sin dominios externos
+    return { id: item.id, title, authors, year, thumbnail, volumeInfo: vi };
   }
 
   function displayGoogleBooksResults(items) {
@@ -234,16 +276,16 @@ import { supabase } from "../supabaseClient.js";
     resultsDiv.innerHTML = formatted
       .map(
         (book) => `
-      <div class="autocomplete-item" data-book-id="${book.id}">
-        <img src="${book.thumbnail}" alt="${book.title}"
-             class="book-cover" onerror="this.src='https://via.placeholder.com/50x70?text=Sin+portada'">
-        <div class="book-info">
-          <div class="book-title">${book.title}</div>
-          <div class="book-author">${book.authors}${
+    <div class="autocomplete-item" data-book-id="${book.id}">
+      <img src="${book.thumbnail}" alt="${book.title}" class="book-cover" />
+      <div class="book-info">
+        <div class="book-title">${book.title}</div>
+        <div class="book-author">${book.authors}${
           book.year ? " · " + book.year : ""
         }</div>
-        </div>
-      </div>`
+      </div>
+    </div>
+  `
       )
       .join("");
   }
@@ -570,24 +612,27 @@ import { supabase } from "../supabaseClient.js";
   }
 
   async function uploadBookImages(userId, bookId, files) {
-    const uploaded = [];
-    let position = 0;
-
-    for (const file of files) {
+    // Subimos en paralelo y mantenemos el orden por índice
+    const BUCKET_NAME = "bookea-images";
+    const tasks = Array.from(files).map((file, position) => {
       const ext = (file.type.split("/")[1] || "jpg").toLowerCase();
       const path = `${userId}/${bookId}/${position}.${ext}`;
-      const { error: upErr } = await supabase.storage
+      return supabase.storage
         .from(BUCKET_NAME)
-        .upload(path, file, { upsert: false });
-      if (upErr) throw upErr;
+        .upload(path, file, { upsert: false })
+        .then(({ error }) => {
+          if (error) throw error;
+          const { data: pub } = supabase.storage
+            .from(BUCKET_NAME)
+            .getPublicUrl(path);
+          return { url: pub.publicUrl, position };
+        });
+    });
 
-      const { data: pub } = supabase.storage
-        .from(BUCKET_NAME)
-        .getPublicUrl(path);
-      uploaded.push({ url: pub.publicUrl, position });
-      position++;
-    }
-    return uploaded;
+    // lanza todo junto
+    const results = await Promise.all(tasks);
+    // ya vienen ordenadas por position
+    return results;
   }
 
   async function insertBookImages(bookId, urls) {
@@ -608,18 +653,27 @@ import { supabase } from "../supabaseClient.js";
     condition,
     cover_url,
     publisher,
+    pending = false,
   }) {
     const grid = document.getElementById("myListingsGrid");
     if (!grid) return;
 
     const col = document.createElement("div");
     col.className = "col";
+    col.dataset.bookId = String(id); // clave para luego actualizar la portada
 
     col.innerHTML = `
-    <div class="card h-100 shadow-sm border-0 rounded-3">
+    <div class="card h-100 shadow-sm border-0 rounded-3 position-relative">
+      ${
+        pending
+          ? `
+        <span class="position-absolute top-0 start-0 m-2 badge text-bg-warning">Publicando…</span>
+      `
+          : ``
+      }
       <div class="position-relative">
         <div class="ratio ratio-3x4">
-          <img src="${
+          <img data-cover src="${
             cover_url || "/assets/img/placeholder-3x4.png"
           }" alt="${title}" class="w-100 h-100 object-fit-cover">
         </div>
@@ -642,24 +696,16 @@ import { supabase } from "../supabaseClient.js";
       <div class="card-body p-2">
         <div class="fw-semibold text-truncate" title="${title}">${title}</div>
         <div class="small text-secondary">por ${publisher || "Vos"}</div>
-        <div class="mt-2"><span class="badge text-bg-light">${condition}</span></div>
+        <div class="mt-2"><span class="badge text-bg-light">${humanize(
+          condition
+        )}</span></div>
         <div class="fw-semibold mt-2">${Number(price).toLocaleString("es-AR", {
           style: "currency",
           currency: "ARS",
         })}</div>
         <div class="d-flex gap-2 mt-2">
-  ${
-    publisher !== "Vos"
-      ? `
-    <button class="btn btn-sm btn-outline-secondary" title="Guardar en wishlist">
-      <i class="bi bi-heart"></i>
-    </button>
-  `
-      : ``
-  }
-  <a class="btn btn-sm btn-outline-primary" href="/template/libro.html?id=${id}">Ver más</a>
-</div>
-
+          <a class="btn btn-sm btn-outline-primary" href="/template/libro.html?id=${id}">Ver más</a>
+        </div>
       </div>
     </div>
   `;
@@ -675,7 +721,7 @@ import { supabase } from "../supabaseClient.js";
     e.preventDefault();
 
     if (igFiles.length === 0) {
-      alert("Subí al menos una foto del ejemplar 😊");
+      toast("Subí al menos una foto del ejemplar 😊", "warning");
       setStep(3);
       igStage.focus();
       return;
@@ -685,24 +731,26 @@ import { supabase } from "../supabaseClient.js";
       data: { user },
     } = await supabase.auth.getUser();
     if (!user) {
-      alert("Tenés que iniciar sesión para publicar.");
+      toast("Tenés que iniciar sesión para publicar.", "warning");
       return;
     }
+
+    // bloquear UI del submit
+    btnSubmit.disabled = true;
+    btnPrev.disabled = true;
+    btnNext.disabled = true;
+    const oldLabel = btnSubmit.innerHTML;
+    btnSubmit.innerHTML = `<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>Publicando...`;
 
     const book = {
       owner: user.id,
       title: document.getElementById("bookTitle")?.value?.trim() || "",
       author: document.getElementById("bookAuthor")?.value?.trim() || "",
       genre: document.getElementById("bookGenre")?.value?.trim() || null,
-
-      // descripción del Paso 1 (auto/manual)
       details:
         document.getElementById("bookDescription")?.value?.trim() || null,
-
-      // descripción manual del Paso 2 -> columna books.description
       description:
         document.getElementById("bookDescriptionManual")?.value?.trim() || null,
-
       condition: document.getElementById("bookCondition")?.value,
       language: getFinalLanguage(),
       cover_type: document.getElementById("bookCover")?.value,
@@ -711,7 +759,7 @@ import { supabase } from "../supabaseClient.js";
     };
 
     try {
-      // 1) Insert en books
+      // 1) Insert rápido del book
       const { data: inserted, error: insErr } = await supabase
         .from("books")
         .insert(book)
@@ -720,34 +768,52 @@ import { supabase } from "../supabaseClient.js";
       if (insErr) throw insErr;
       const bookId = inserted.id;
 
-      // 2) Upload imágenes al Storage
-      const uploaded = await uploadBookImages(user.id, bookId, igFiles);
-
-      // 3) Guardar filas en book_images
-      await insertBookImages(bookId, uploaded);
-
-      // 4) Renderizar card (usando la primera imagen como portada visual)
+      // 2) Pintar card optimista con badge "Publicando…"
       const publisher = await getCurrentProfileName();
       renderMyBookCard({
         id: bookId,
         title: book.title,
         price: book.price,
         condition: book.condition,
-        cover_url: uploaded[0]?.url || null,
+        cover_url: null, // placeholder
         publisher,
+        pending: true,
       });
 
-      alert("¡Libro publicado exitosamente!");
-      // reset mínimos
+      // 3) Subir imágenes en paralelo + guardar en book_images
+      const uploaded = await uploadBookImages(user.id, bookId, igFiles);
+      if (uploaded.length) {
+        const rows = uploaded.map((u) => ({
+          book_id: bookId,
+          url: u.url,
+          position: u.position,
+        }));
+        const { error: imErr } = await supabase
+          .from("book_images")
+          .insert(rows);
+        if (imErr) throw imErr;
+        // actualizar portada y sacar badge
+        finalizeMyBookCardCover(bookId, uploaded[0].url);
+      }
+
+      toast("¡Libro publicado exitosamente!", "success");
+
+      // reset UI
       igFiles = [];
       renderStage();
       renderTray();
       formEl.reset();
       setStep(1);
-      closeModal();
+      closeModal?.();
     } catch (err) {
       console.error(err);
-      alert("Error al publicar el libro. Intentá de nuevo.");
+      toast("Error al publicar el libro. Intentá de nuevo.", "danger");
+    } finally {
+      // restaurar botones
+      btnSubmit.disabled = false;
+      btnPrev.disabled = currentStep === 1;
+      btnNext.disabled = currentStep === 3;
+      btnSubmit.innerHTML = oldLabel;
     }
   }
 
