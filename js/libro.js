@@ -25,46 +25,64 @@ function sanitizeBasic(html = "") {
   return html;
 }
 
-/* ---------- init ---------- */
+function applyDynamicBreadcrumb() {
+  // 1) query param tiene prioridad
+  const src = new URLSearchParams(location.search).get("src");
+
+  // 2) sino, inferí desde el referrer
+  const ref = document.referrer || "";
+  const from = (src || (
+    ref.includes("publicacion_libro") ? "my" :
+    ref.includes("wishlist") ? "wishlist" :
+    ref.includes("/index") ? "discover" :
+    ""
+  )).toLowerCase();
+
+  const crumb = document.querySelector('.breadcrumb .breadcrumb-item:first-child a');
+  if (!crumb) return;
+
+  switch (from) {
+    case "my":
+    case "mis":
+    case "publicaciones":
+      crumb.textContent = "Mis publicaciones";
+      crumb.href = "/template/publicacion_libro.html";
+      break;
+    case "wishlist":
+    case "wl":
+      crumb.textContent = "Mi wishlist";
+      crumb.href = "/template/wishlist.html";
+      break;
+    default:
+      crumb.textContent = "Descubre";
+      crumb.href = "/index.html";
+  }
+}
+
+
+/* ---------- init (1 sola query con relaciones) ---------- */
 (async function init() {
   const id = new URLSearchParams(location.search).get("id");
   if (!id) return (location.href = "/index.html");
 
-  // 1) BOOK (sin joins)
-  const { data: book, error: eBook } = await supabase
+  const { data: book, error } = await supabase
     .from("books")
     .select(`
       id, owner, title, author, genre, language, cover_type, condition,
-      details, description, price, is_tradable, location, created_at, contact_phone_override
+      details, description, price, is_tradable, location, created_at, contact_phone_override,
+      book_images (url, position),
+      seller:profiles!books_owner_fkey ( id, nombre, apellido, residence, phone, created_at )
     `)
     .eq("id", id)
     .single();
-    
-  if (eBook || !book) {
-    console.error("Error book:", eBook);
-    renderNotFound(eBook);
+
+  if (error || !book) {
+    console.error("Error book:", error);
+    renderNotFound(error);
     return;
   }
 
-  // 2) IMAGES
-  const { data: images, error: eImgs } = await supabase
-    .from("book_images")
-    .select("url, position")
-    .eq("book_id", id)
-    .order("position", { ascending: true });
-
-  if (eImgs) console.warn("Warn images:", eImgs);
-
-  // 3) SELLER PROFILE
-  const { data: seller, error: eSeller } = await supabase
-    .from("profiles")
-    .select("id, nombre, apellido, residence, phone, created_at")
-    .eq("id", book.owner)
-    .maybeSingle();
-
-  if (eSeller) console.warn("Warn seller:", eSeller);
-
-  renderBook({ ...book, _images: images ?? [], _seller: seller ?? null });
+  renderBook(book);
 })();
 
 /* ---------- render ---------- */
@@ -78,8 +96,9 @@ function renderNotFound(err) {
   }
 }
 
+/* ---------- render ---------- */
 function renderBook(book) {
-  const imgs = book._images.slice().sort(byPos);
+  const imgs = (book.book_images || []).slice().sort(byPos);
   const main = document.getElementById("mainImage");
   const thumbs = document.getElementById("thumbs");
 
@@ -90,14 +109,12 @@ function renderBook(book) {
 
   // precio + estado
   document.getElementById("price").textContent = moneyAR(book.price);
-  const cond = conditionLabel(book.condition);
-  document.getElementById("detailCondition").textContent = cond;
+  document.getElementById("detailCondition").textContent = conditionLabel(book.condition);
 
-   // ubicación: prioriza la del libro, sino la del vendedor
-  const seller = book._seller || {};
-  const sellerName =
-    seller.nombre + " " + seller.apellido || "Usuario";
-  const sellerLoc = seller.residence || "—"; 
+  // vendedor / ubicación
+  const seller = book.seller || {};
+  const sellerName = `${seller.nombre || ""} ${seller.apellido || ""}`.trim() || "Usuario";
+  const sellerLoc = book.location || seller.residence || "—";
 
   // detalles
   document.getElementById("detailDesc").textContent = book.description || "—";
@@ -105,14 +122,15 @@ function renderBook(book) {
   document.getElementById("detailLang").textContent = book.language || "—";
   document.getElementById("detailCover").textContent = book.cover_type || "—";
   document.getElementById("detailTrade").textContent = book.is_tradable ? "Disponible" : "No disponible";
-  document.getElementById("detailLoc").innerHTML = sellerLoc !== "—" ? `<i class="bi bi-geo-alt me-1"></i>${sellerLoc}` : "—";
+  document.getElementById("detailLoc").innerHTML =
+    sellerLoc !== "—" ? `<i class="bi bi-geo-alt me-1"></i>${sellerLoc}` : "—";
 
-  // Descripción larga (de Google Books, suele venir con HTML) -> render HTML
+  // descripción larga (sanitizada)
   const descLong = book.details || "";
   document.getElementById("description").innerHTML =
     descLong ? sanitizeBasic(descLong) : "Sin descripción.";
 
-  // galería (con fallback)
+  // galería
   const firstSrc = imgs[0]?.url || "https://placehold.co/360x480?text=Sin+foto";
   main.src = firstSrc;
   thumbs.innerHTML = "";
@@ -136,11 +154,8 @@ function renderBook(book) {
 
   // Contactar vendedor → WhatsApp
   document.getElementById("contactBtn").onclick = () => {
-    const phone = seller.phone || book.contact_phone_override || "";
-    if (!phone) {
-      alert("El vendedor aún no cargó un teléfono.");
-      return;
-    }
+    const phone = book.contact_phone_override || seller.phone || "";
+    if (!phone) return alert("El vendedor aún no cargó un teléfono.");
     const msg = `Hola ${sellerName}, vi "${book.title}" en Bookea. ¿Sigue disponible?`;
     const url = `https://wa.me/${phone}?text=${encodeURIComponent(msg)}`;
     window.open(url, "_blank", "noopener,noreferrer");
@@ -156,4 +171,7 @@ function renderBook(book) {
       alert("Enlace copiado al portapapeles");
     }
   };
+
+  // breadcrumbs según origen (ver punto 3)
+  applyDynamicBreadcrumb();
 }
