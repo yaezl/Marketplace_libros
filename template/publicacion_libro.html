@@ -13,7 +13,10 @@
 
     <link rel="icon" type="image/png" href="/assets/img/bookealogo.png" />
     <link rel="stylesheet" href="/assets/css/custom.css">
-
+    <script>
+    // Marcamos "estado de auth desconocido" lo más temprano posible
+    document.documentElement.classList.add('auth-unknown');
+    </script>
 </head>
 
 <body>
@@ -152,7 +155,7 @@
 
                 <!-- donde quieras listar las publicaciones del usuario -->
                 <section class="mt-3">
-                    <h5 class="mb-2">Mis publicaciones</h5>
+                    <h3 class="mb-4">Mis publicaciones</h3>
                     <div id="myListingsGrid" class="row row-cols-2 row-cols-md-3 row-cols-lg-4 g-3"></div>
                 </section>
 

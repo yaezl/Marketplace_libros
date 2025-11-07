@@ -738,3 +738,18 @@ img.solo-logueado:hover {
   right: .5rem;
   z-index: 2;
 }
+
+/* Evitar FOUC/flash de login mientras se resuelve la sesión */
+.auth-unknown .solo-publico,
+.auth-unknown .solo-logueado {
+  opacity: 0;            /* no se ve */
+  pointer-events: none;  /* no clickeable */
+}
+
+/* Cuando ya se resolvió la sesión, vuelve todo a la normalidad */
+html:not(.auth-unknown) .solo-publico,
+html:not(.auth-unknown) .solo-logueado {
+  opacity: 1;
+  pointer-events: auto;
+  transition: opacity .12s ease;
+}

@@ -10,7 +10,6 @@ async function verificarSesion() {
     elementosPrivados.forEach(el => el.classList.remove('d-none'));
     elementosPublicos.forEach(el => el.classList.add('d-none'));
 
-    // Mostrar nombre en el saludo
     const userData = session.user.user_metadata;
     const saludo = document.getElementById('saludo-usuario');
     if (saludo && userData?.nombre) {
@@ -20,7 +19,11 @@ async function verificarSesion() {
     elementosPrivados.forEach(el => el.classList.add('d-none'));
     elementosPublicos.forEach(el => el.classList.remove('d-none'));
   }
+
+  // 🔑 Ya resolvimos auth: sacar el estado "desconocido"
+  document.documentElement.classList.remove('auth-unknown');
 }
+
 
 // --- LOGOUT ---
 document.addEventListener('click', async (e) => {
@@ -57,6 +60,12 @@ document.addEventListener('click', async (e) => {
 
 
 document.addEventListener('DOMContentLoaded', verificarSesion);
+
+// 🔁 Mantener la UI sincronizada si cambia la sesión en runtime (otra pestaña, logout, etc.)
+supabase.auth.onAuthStateChange((_event, _session) => {
+  verificarSesion();
+});
+
 // GATEO: si no hay sesión, pedir login en acciones protegidas
 document.addEventListener('click', async (e) => {
   // Obtenemos sesión actual
