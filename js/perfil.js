@@ -75,7 +75,7 @@ btnSave.addEventListener("click", async (e) => {
 
     if (error) {
       console.error("Supabase upsert error:", error);
-      return showToast(error.message || "Error al guardar los cambios 😕", true);
+      return showToast(error.message || "Error al guardar los cambios ", true);
     }
 
     showToast("Perfil guardado correctamente");
@@ -99,6 +99,91 @@ function showToast(message, isError = false) {
     alert(message);
   }
 }
+// --- AVATAR: referencias DOM ---
+const avatarImg    = document.getElementById("pf-avatar");
+const avatarInput  = document.getElementById("pf-avatar-file");
+const avatarRemove = document.getElementById("pf-avatar-remove");
+
+const DEFAULT_AVATAR = "/assets/img/bookealogo.png";
+const BUCKET = "avatars";
+
+// Helper ruta
+const avatarPath = (uid) => `${uid}/avatar`;
+
+// Cargar avatar desde storage
+async function loadAvatar(uid) {
+  try {
+    const { data } = supabase.storage.from(BUCKET).getPublicUrl(avatarPath(uid));
+    const url = data?.publicUrl ? `${data.publicUrl}?t=${Date.now()}` : null;
+
+    if (!url) {
+      avatarImg.src = DEFAULT_AVATAR;
+      return;
+    }
+
+    // Verificar si existe
+    const exists = await fetch(url, { method: "HEAD" })
+      .then((r) => r.ok)
+      .catch(() => false);
+
+    avatarImg.src = exists ? url : DEFAULT_AVATAR;
+  } catch {
+    avatarImg.src = DEFAULT_AVATAR;
+  }
+}
+
+// Ampliamos loadProfile: agregá esto dentro del tuyo
+const _oldLoadProfile = loadProfile;
+loadProfile = async function () {
+  await _oldLoadProfile(); // ejecuta tu versión original
+  const { data: userData } = await supabase.auth.getUser();
+  if (userData?.user) await loadAvatar(userData.user.id);
+};
+
+// Subir nueva foto
+avatarInput?.addEventListener("change", async (e) => {
+  const file = e.target.files?.[0];
+  if (!file) return;
+
+  const { data: userData } = await supabase.auth.getUser();
+  if (!userData?.user) return showToast("Sesión no válida", true);
+
+  if (!/^image\//.test(file.type))
+    return showToast("Elegí una imagen válida", true);
+  if (file.size > 2 * 1024 * 1024)
+    return showToast("Máximo 2 MB", true);
+
+  const path = avatarPath(userData.user.id);
+  const { error } = await supabase.storage
+    .from(BUCKET)
+    .upload(path, file, { upsert: true, contentType: file.type });
+
+  if (error) {
+    console.error("avatar upload error:", error);
+    return showToast("No se pudo subir la foto ", true);
+  }
+
+  const { data } = supabase.storage.from(BUCKET).getPublicUrl(path);
+  avatarImg.src = `${data.publicUrl}?t=${Date.now()}`;
+  showToast("Foto actualizada ");
+  avatarInput.value = "";
+});
+
+// Quitar foto
+avatarRemove?.addEventListener("click", async () => {
+  const { data: userData } = await supabase.auth.getUser();
+  if (!userData?.user) return;
+
+  const path = avatarPath(userData.user.id);
+  const { error } = await supabase.storage.from(BUCKET).remove([path]);
+  if (error) {
+    console.error("avatar remove error:", error);
+    return showToast("No se pudo quitar la foto ", true);
+  }
+
+  avatarImg.src = DEFAULT_AVATAR;
+  showToast("Foto quitada ");
+});
 
 /* ---------- init ---------- */
 loadProfile();

@@ -18,11 +18,11 @@
 <body>
   <!-- Barra visible solo si NO hay sesión -->
   <div class="solo-publico d-flex justify-content-end align-items-center gap-2 p-2">
-    <button id="btn-login" class="btn btn-outline-secondary solo-publico">
+    <!-- <button id="btn-login" class="btn btn-outline-secondary solo-publico">
       Iniciar sesión
-    </button>
+    </button> -->
     <button id="btn-register" class="btn btn-dark solo-publico">
-      Registrarse
+      Iniciar Sesión
     </button>
   </div>
 
@@ -45,10 +45,12 @@
           <i class="bi bi-bell"></i>
         </button>
         <!-- PERFIL SECCION -->
+        <!-- avatar global -->
         <a href="/template/perfil.html" class="d-inline-block">
-          <img src="assets/img/bookealogo.png" width="32" height="32" class="rounded-circle border solo-logueado"
-            alt="perfil" />
+          <img data-user-avatar src="/assets/img/bookealogo.png" width="32" height="32"
+            class="rounded-circle border solo-logueado" alt="perfil" />
         </a>
+
 
       </div>
     </div>
@@ -67,7 +69,7 @@
   <!-- LAYOUT -->
   <div class="container-fluid">
     <div class="row">
-      <!-- SIDEBAR (visible en lg+) -->
+      <!-- SIDEBAR desktop -->
       <aside class="col-lg-2 d-none d-lg-block sidebar">
         <div class="d-flex align-items-center gap-2 mb-3">
           <div class="logo-pill">
@@ -92,9 +94,10 @@
 
           <div class="mt-3 border-top pt-3">
             <a class="nav-link" href="template/faq.html"><i class="bi bi-life-preserver"></i> Preguntas Frecuentes</a>
-            <a class="nav-link solo-logueado" href="#" id="btn-logout">
+            <a class="nav-link solo-logueado" href="/login.html" data-auth-logout>
               <i class="bi bi-box-arrow-right"></i> Cerrar sesión
             </a>
+
           </div>
         </nav>
       </aside>
@@ -107,7 +110,7 @@
               <img src="assets/img/bookealogo.png" alt="Bookea logo"
                 style="width: 28px; height: 28px; object-fit: contain" />
             </div>
-            Marketplace
+            Bookea
           </h5>
 
           <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Cerrar"></button>
@@ -115,15 +118,18 @@
         <div class="offcanvas-body">
           <nav class="nav flex-column gap-1">
             <a class="nav-link active" href="index.html"><i class="bi bi-compass"></i> Descubre</a>
-            <a class="nav-link" href="/template/wishlist.html"><i class="bi bi-grid" data-auth-required></i> Wishlist</a>
-            <a class="nav-link" href="template/publicacion_libro.html"><i class="bi bi-collection"
+            <a class="nav-link" href="/template/wishlist.html"><i class="bi bi-grid" data-auth-required></i>
+              Wishlist</a>
+            <a class="nav-link" href="/template/publicacion_libro.html"><i class="bi bi-collection"
                 data-auth-required></i> Mis
               Publicaciones</a>
             <div class="mt-3 border-top pt-3">
-              <a class="nav-link" href="#"><i class="bi bi-gear" data-auth-required></i>
-                Configuración</a>
-              <a class="nav-link" href="template/faq.html"><i class="bi bi-life-preserver"></i> Preguntas Frecuentes</a>
-              <a class="nav-link solo-logueado" href="#"><i class="bi bi-box-arrow-right"></i> Cerrar sesión</a>
+              <a class="nav-link" href="/template/faq.html"><i class="bi bi-life-preserver"></i> Preguntas
+                Frecuentes</a>
+              <a class="nav-link solo-logueado" href="/login.html" data-auth-logout>
+                <i class="bi bi-box-arrow-right"></i> Cerrar sesión
+              </a>
+
             </div>
           </nav>
         </div>
@@ -134,22 +140,21 @@
         <!-- Barra superior (solo desktop): buscador + iconos + perfil -->
         <div class="d-none d-lg-flex align-items-center justify-content-between mb-3">
           <form class="flex-grow-1 me-3" role="search">
-                        <div class="input-group search-wrap">
-                            <span class="input-group-text bg-white border-0"><i
-                                    class="bi bi-search text-secondary"></i></span>
-                            <input type="text" class="form-control border-0"
-                                placeholder="Encuentra tu proxima lectura..." />
-                        </div>
-                    </form>
+            <div class="input-group search-wrap">
+              <span class="input-group-text bg-white border-0"><i class="bi bi-search text-secondary"></i></span>
+              <input type="text" class="form-control border-0" placeholder="Encuentra tu proxima lectura..." />
+            </div>
+          </form>
           <div class="d-flex align-items-center gap-2">
             <button class="btn btn-outline-secondary rounded-4 solo-logueado">
               <i class="bi bi-bell"></i>
             </button>
-            <!-- perfil seccion -->
+            <!-- avatar global -->
             <a href="/template/perfil.html" class="d-inline-block">
-              <img src="/assets/img/bookealogo.png" width="32" height="32" class="rounded-circle border solo-logueado"
-                alt="perfil" />
+              <img data-user-avatar src="/assets/img/bookealogo.png" width="32" height="32"
+                class="rounded-circle border solo-logueado" alt="perfil" />
             </a>
+
 
           </div>
         </div>
@@ -180,6 +185,8 @@
 
   <script type="module" src="./js/main.js"></script>
   <script type="module" src="./js/authGuard.js"></script>
+  <!-- <script type="module" src="/js/avatar.js"></script>
+ -->
   <script>
     // Manejar retorno desde el mail de confirmación:
     document.addEventListener("DOMContentLoaded", async () => {

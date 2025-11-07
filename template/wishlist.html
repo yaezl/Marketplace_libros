@@ -22,9 +22,9 @@
     <button id="btn-login" class="btn btn-outline-secondary solo-publico">
       Iniciar sesión
     </button>
-    <button id="btn-register" class="btn btn-dark solo-publico">
+    <!--  <button id="btn-register" class="btn btn-dark solo-publico">
       Registrarse
-    </button>
+    </button> -->
   </div>
 
   <!-- TOPBAR SOLO MÓVIL: hamburguesa + logo + perfil -->
@@ -45,10 +45,15 @@
         <button class="btn btn-outline-secondary rounded-4 solo-logueado">
           <i class="bi bi-bell"></i>
         </button>
-        <a href="/template/perfil.html" class="d-inline-block">
-          <img src="/assets/img/bookealogo.png" width="32" height="32" class="rounded-circle border solo-logueado"
-            alt="perfil" />
-        </a>
+        <!-- avatar global -->
+<a href="/template/perfil.html" class="d-inline-block">
+  <img data-user-avatar
+       src="/assets/img/bookealogo.png"
+       width="32" height="32"
+       class="rounded-circle border solo-logueado"
+       alt="perfil" />
+</a>
+
       </div>
     </div>
   </header>
@@ -56,7 +61,7 @@
   <!-- LAYOUT -->
   <div class="container-fluid">
     <div class="row">
-      <!-- SIDEBAR (visible en lg+) -->
+      <!-- SIDEBAR desktop-->
       <aside class="col-lg-2 d-none d-lg-block sidebar">
         <div class="d-flex align-items-center gap-2 mb-3">
           <div class="logo-pill">
@@ -81,9 +86,10 @@
           <div class="mt-3 border-top pt-3">
             <a class="nav-link" href="faq.html"><i class="bi bi-life-preserver"></i> Preguntas
               Frecuentes</a>
-            <a class="nav-link solo-logueado" href="#" id="btn-logout">
+            <a class="nav-link solo-logueado" href="/login.html" data-auth-logout>
               <i class="bi bi-box-arrow-right"></i> Cerrar sesión
             </a>
+
           </div>
         </nav>
       </aside>
@@ -96,23 +102,26 @@
               <img src="/assets/img/bookealogo.png" alt="Bookea logo"
                 style="width: 28px; height: 28px; object-fit: contain" />
             </div>
-            Marketplace
+            Bookea
           </h5>
 
           <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Cerrar"></button>
         </div>
         <div class="offcanvas-body">
           <nav class="nav flex-column gap-1">
-            <a class="nav-link active" href="/index.html"><i class="bi bi-compass"></i> Descubre</a>
-            <a class="nav-link" href="#"><i class="bi bi-grid" data-auth-required></i> Wishlist</a>
-            <a class="nav-link" href="#"><i class="bi bi-collection" data-auth-required></i> Mis
+            <a class="nav-link " href="/index.html"><i class="bi bi-compass"></i> Descubre</a>
+            <a class="nav-link active" href="#"><i class="bi bi-grid" data-auth-required></i> Wishlist</a>
+            <a class="nav-link" href="/template/publicacion_libro.html"><i class="bi bi-collection"
+                data-auth-required></i> Mis
               Publicaciones</a>
             <div class="mt-3 border-top pt-3">
 
-              <a class="nav-link" href="faq.html"><i class="bi bi-life-preserver"></i> Preguntas
+              <a class="nav-link" href="/template/faq.html"><i class="bi bi-life-preserver"></i> Preguntas
                 Frecuentes</a>
-              <a class="nav-link solo-logueado" href="#"><i class="bi bi-box-arrow-right"></i> Cerrar
-                sesión</a>
+              <a class="nav-link solo-logueado" href="/login.html" data-auth-logout>
+                <i class="bi bi-box-arrow-right"></i> Cerrar sesión
+              </a>
+
             </div>
           </nav>
         </div>
@@ -127,10 +136,15 @@
             <button class="btn btn-outline-secondary rounded-4 solo-logueado">
               <i class="bi bi-bell"></i>
             </button>
-            <a href="/template/perfil.html" class="d-inline-block">
-              <img src="/assets/img/bookealogo.png" width="32" height="32" class="rounded-circle border solo-logueado"
-                alt="perfil" />
-            </a>
+            <!-- avatar global -->
+<a href="/template/perfil.html" class="d-inline-block">
+  <img data-user-avatar
+       src="/assets/img/bookealogo.png"
+       width="32" height="32"
+       class="rounded-circle border solo-logueado"
+       alt="perfil" />
+</a>
+
           </div>
         </div>
 

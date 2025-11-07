@@ -21,27 +21,38 @@ async function verificarSesion() {
     elementosPublicos.forEach(el => el.classList.remove('d-none'));
   }
 }
-// LOGOUT
+
 // --- LOGOUT ---
-document.addEventListener('DOMContentLoaded', () => {
-  const btnLogout = document.getElementById('btn-logout');
+document.addEventListener('click', async (e) => {
+  const btn = e.target.closest('[data-auth-logout]');
+  if (!btn) return;
 
-  if (btnLogout) {
-    btnLogout.addEventListener('click', async (e) => {
-      e.preventDefault();
+  e.preventDefault();
 
-      // 1. Cierra la sesión en Supabase
-      const { error } = await supabase.auth.signOut();
-      if (error) {
-        console.error('Error al cerrar sesión:', error.message);
-        return;
-      }
-
-      // 2. Redirige al inicio (modo invitado)
-      window.location.href = 'index.html';
-    });
+  try {
+    // Cierra sesión en Supabase (todas las pestañas si querés)
+    await supabase.auth.signOut({ scope: 'global' });
+  } catch (err) {
+    console.error('Error al cerrar sesión:', err);
+    // seguimos igual con la redirección
   }
+
+  // Si el offcanvas está abierto en mobile, ocultalo (Bootstrap 5 expone window.bootstrap)
+  try {
+    const oc = document.querySelector('.offcanvas.show');
+    if (oc && window.bootstrap?.Offcanvas) {
+      window.bootstrap.Offcanvas.getInstance(oc)?.hide();
+    }
+  } catch (_) {}
+
+  // Limpiezas opcionales (si guardás algo propio)
+  localStorage.removeItem('bookea:session');
+  sessionStorage.removeItem('bookea:session');
+
+  // Redirigir (elegí el destino que uses: login o home “invitado”)
+  window.location.href = '/index.html';
 });
+
 
 
 
@@ -60,7 +71,7 @@ document.addEventListener('click', async (e) => {
     e.preventDefault();
     // Opcional: guardar a dónde quería ir (para volver luego del login)
     // localStorage.setItem('postLoginRedirect', window.location.href);
-    window.location.href = 'login.html';
+    window.location.href = '/login.html';
   }
 });
 // --- Navegación directa desde los botones de la barra pública ---
@@ -72,7 +83,7 @@ document.addEventListener('DOMContentLoaded', () => {
     btnLogin.addEventListener('click', (e) => {
       e.preventDefault();
       // podés usar el query para mostrar la vista "login" por defecto
-      window.location.href = 'login.html?mode=login';
+      window.location.href = '/login.html?mode=login';
     });
   }
 
@@ -80,7 +91,7 @@ document.addEventListener('DOMContentLoaded', () => {
     btnRegister.addEventListener('click', (e) => {
       e.preventDefault();
       // podés usar el query para mostrar la vista "registro" por defecto
-      window.location.href = 'login.html?mode=register';
+      window.location.href = '/login.html?mode=register';
     });
   }
 });

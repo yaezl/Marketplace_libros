@@ -69,3 +69,25 @@ const { data, error } = await supabase.auth.signUp({
 
   mostrarAlerta('info', 'Cuenta creada correctamente. Revisá tu correo para confirmar el registro.');
 });
+// ----- Olvidé mi contraseña -----
+const forgotLink = document.getElementById('link-forgot');
+if (forgotLink) {
+  forgotLink.addEventListener('click', async (e) => {
+    e.preventDefault();
+    const email = (document.getElementById('login-email').value || '').trim();
+
+    if (!email) {
+      return mostrarAlerta('warning', 'Ingresá tu correo y después hacé clic en “¿Olvidaste tu contraseña?”.');
+    }
+
+    try {
+      const redirectTo = `${location.origin}/password-reset.html`; 
+      const { error } = await supabase.auth.resetPasswordForEmail(email, { redirectTo });
+      if (error) throw error;
+      mostrarAlerta('info', 'Te enviamos un correo para restablecer tu contraseña. Revisá tu bandeja de entrada o spam.');
+    } catch (err) {
+      console.error(err);
+      mostrarAlerta('danger', 'No pudimos enviar el correo de recuperación. Verificá el email.');
+    }
+  });
+}

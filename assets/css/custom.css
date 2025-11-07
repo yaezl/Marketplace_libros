@@ -447,8 +447,8 @@
       padding: 10px 16px;
       border-radius: 10px;
       border: 1px solid var(--ml-neutral-200);
-      background: #fff;
-      color: var(--ml-neutral-800);
+      background: #ffffff;
+      color: white;
     }
 
     /* FAB ajuste */
@@ -604,7 +604,6 @@
 
 
     /* css par FAQ.HTML */
-    /* —— FAQ: chips / buscador / accordion —— */
     /* —— FAQ: chips / buscador / accordion —— */
 .search-wrap .form-control {
   background: #fff;
