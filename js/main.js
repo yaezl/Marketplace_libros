@@ -26,58 +26,74 @@ function renderBookCard({ book, container, isOwner }) {
       : book.publisher) || "Usuario";
 
   col.innerHTML = `
-    <div class="card h-100 shadow-sm border-0 rounded-3">
-      <div class="position-relative">
-        <div class="ratio ratio-3x4">
-          <img src="${cover}" alt="${book.title
-    }" class="w-100 h-100 object-fit-cover">
-        </div>
-
-        ${isOwner
-      ? `
-        <div class="position-absolute top-0 end-0 p-1">
-          <div class="dropdown">
-            <button class="btn btn-light btn-sm rounded-circle border-0" data-bs-toggle="dropdown" aria-expanded="false">
-              <i class="bi bi-three-dots"></i>
-            </button>
-            <ul class="dropdown-menu dropdown-menu-end">
-              <li><a class="dropdown-item" href="#" data-action="edit" data-id="${book.id}">
-                <i class="bi bi-pencil-square me-2"></i>Editar</a></li>
-              <li><hr class="dropdown-divider"></li>
-              <li><a class="dropdown-item text-danger" href="#" data-action="delete" data-id="${book.id}">
-                <i class="bi bi-trash3 me-2"></i>Eliminar</a></li>
-            </ul>
-          </div>
-        </div>`
-      : ""
-    }
+  <div class="card h-100 shadow-sm border-0 rounded-3">
+    <div class="position-relative">
+      <div class="ratio ratio-3x4">
+        <img src="${cover}" alt="${
+    book.title
+  }" class="w-100 h-100 object-fit-cover">
       </div>
 
-      <div class="card-body p-2">
-        <div class="fw-semibold text-truncate" title="${book.title}">${book.title
-    }</div>
-        <div class="small text-secondary text-truncate">${book.author ?? ""
-    }</div>
-        <div class="small text-muted">Publicado por <span class="fw-medium">${publisher}</span></div>
-
-        <div class="price-row mt-2">
-          <span class="badge text-bg-light">${humanize(book.condition)}</span>
-          <span class="fw-semibold">${moneyAR(book.price)}</span>
+      ${
+        isOwner
+          ? `
+      <div class="position-absolute top-0 end-0 p-1">
+        <div class="dropdown">
+          <button class="btn btn-light btn-sm rounded-circle border-0" data-bs-toggle="dropdown" aria-expanded="false">
+            <i class="bi bi-three-dots"></i>
+          </button>
+          <ul class="dropdown-menu dropdown-menu-end">
+            <li><a class="dropdown-item" href="#" data-action="edit" data-id="${book.id}">
+              <i class="bi bi-pencil-square me-2"></i>Editar</a></li>
+            <li><hr class="dropdown-divider"></li>
+            <li><a class="dropdown-item text-danger" href="#" data-action="delete" data-id="${book.id}">
+              <i class="bi bi-trash3 me-2"></i>Eliminar</a></li>
+          </ul>
         </div>
+      </div>`
+          : ``
+      }
+    </div>
 
-        <div class="d-flex gap-2 mt-2">
-          <!-- ❤️ wishlist (a implementar) -->
-          <button class="btn btn-sm btn-outline-secondary" disabled title="Guardar en wishlist (próximamente)">
+    <div class="card-body p-2">
+      <div class="fw-semibold text-truncate" title="${book.title}">${
+    book.title
+  }</div>
+      <div class="small text-secondary text-truncate">${book.author ?? ""}</div>
+      <div class="small text-muted">
+        Publicado por <span class="fw-medium">${
+          isOwner ? "Vos" : publisher
+        }</span>
+      </div>
+
+      <div class="mt-2">
+        <span class="badge text-bg-light">${humanize(book.condition)}</span>
+      </div>
+
+      <!-- Precio pasa a su propia fila para evitar desbordes -->
+      <div class="fw-semibold mt-2">${moneyAR(book.price)}</div>
+
+      <div class="d-flex gap-2 mt-2">
+        ${
+          !isOwner
+            ? `
+          <button class="btn btn-sm btn-outline-secondary" title="Guardar en wishlist">
             <i class="bi bi-heart"></i>
           </button>
-          <!-- Ver más (a implementar) -->
-          <a class="btn btn-sm btn-outline-primary" href="/template/libro.html?id=${book.id}">
-            Ver más
-          </a>
-        </div>
-      </div>
+        `
+            : ``
+        }
+        <a class="btn btn-sm btn-outline-primary" href="/template/libro.html?id=${
+          book.id
+        }">
+    Ver más
+  </a>
+</div>
+
+
     </div>
-  `;
+  </div>
+`;
 
   // handlers editar/eliminar solo para el dueño
   if (isOwner) {
@@ -113,6 +129,10 @@ async function loadDiscover() {
   if (!cont) return;
   cont.innerHTML = "";
 
+  // 1) Traer user actual (puede ser null si no hay sesión)
+  const { data: auth } = await supabase.auth.getUser();
+  const currentUserId = auth?.user?.id || null;
+
   const { data, error } = await supabase
     .from("books")
     .select(
@@ -136,9 +156,11 @@ async function loadDiscover() {
     return;
   }
 
-  data.forEach((row) =>
-    renderBookCard({ book: row, container: cont, isOwner: false })
-  );
+  data.forEach((row) => {
+    const isOwner = currentUserId != null && row.owner === currentUserId;
+    renderBookCard({ book: row, container: cont, isOwner });
+  });
+
 }
 
 /* --------- Mis publicaciones: solo del usuario --------- */

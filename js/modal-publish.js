@@ -610,34 +610,60 @@ import { supabase } from "../supabaseClient.js";
     publisher,
   }) {
     const grid = document.getElementById("myListingsGrid");
-    if (!grid) return; // si no está en esta vista, no hacemos nada
+    if (!grid) return;
 
     const col = document.createElement("div");
-    col.className = "col-6 col-md-4 col-lg-3";
+    col.className = "col";
 
     col.innerHTML = `
-      <div class="book-card p-2 h-100 border rounded-3 shadow-sm">
-        <div class="ratio ratio-3x4 mb-2" style="border-radius:12px; overflow:hidden;">
-          <img src="${cover_url || "/assets/img/placeholder-3x4.png"}"
-               alt="${title}" class="w-100 h-100 object-fit-cover">
+    <div class="card h-100 shadow-sm border-0 rounded-3">
+      <div class="position-relative">
+        <div class="ratio ratio-3x4">
+          <img src="${
+            cover_url || "/assets/img/placeholder-3x4.png"
+          }" alt="${title}" class="w-100 h-100 object-fit-cover">
         </div>
+        <div class="position-absolute top-0 end-0 p-1">
+          <div class="dropdown">
+            <button class="btn btn-light btn-sm rounded-circle border-0" data-bs-toggle="dropdown" aria-expanded="false">
+              <i class="bi bi-three-dots"></i>
+            </button>
+            <ul class="dropdown-menu dropdown-menu-end">
+              <li><a class="dropdown-item" href="#" data-action="edit" data-id="${id}">
+                <i class="bi bi-pencil-square me-2"></i>Editar</a></li>
+              <li><hr class="dropdown-divider"></li>
+              <li><a class="dropdown-item text-danger" href="#" data-action="delete" data-id="${id}">
+                <i class="bi bi-trash3 me-2"></i>Eliminar</a></li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <div class="card-body p-2">
         <div class="fw-semibold text-truncate" title="${title}">${title}</div>
-        <div class="small text-secondary">por ${publisher}</div>
-        <div class="small mt-1 text-capitalize">${condition}</div>
-        <div class="fw-semibold mt-2">
-          ${Number(price).toLocaleString("es-AR", {
-            style: "currency",
-            currency: "ARS",
-          })}
-        </div>
-        <!-- ❤️ Wishlist (pendiente; usar table book_likes) -->
-        <!--
-        <button class="btn btn-sm btn-outline-secondary rounded-circle mt-1"
-                data-like="${id}" title="Guardar en wishlist">
-          <i class="bi bi-heart"></i>
-        </button>
-        -->
-      </div>`;
+        <div class="small text-secondary">por ${publisher || "Vos"}</div>
+        <div class="mt-2"><span class="badge text-bg-light">${condition}</span></div>
+        <div class="fw-semibold mt-2">${Number(price).toLocaleString("es-AR", {
+          style: "currency",
+          currency: "ARS",
+        })}</div>
+        <div class="d-flex gap-2 mt-2">
+  ${
+    publisher !== "Vos"
+      ? `
+    <button class="btn btn-sm btn-outline-secondary" title="Guardar en wishlist">
+      <i class="bi bi-heart"></i>
+    </button>
+  `
+      : ``
+  }
+  <a class="btn btn-sm btn-outline-primary" href="/template/libro.html?id=${id}">Ver más</a>
+</div>
+
+      </div>
+    </div>
+  `;
+
     grid.prepend(col);
   }
 
@@ -664,25 +690,25 @@ import { supabase } from "../supabaseClient.js";
     }
 
     const book = {
-  owner: user.id,
-  title: document.getElementById("bookTitle").value.trim(),
-  author: document.getElementById("bookAuthor").value.trim(),
-  genre: document.getElementById("bookGenre").value.trim() || null,
+      owner: user.id,
+      title: document.getElementById("bookTitle")?.value?.trim() || "",
+      author: document.getElementById("bookAuthor")?.value?.trim() || "",
+      genre: document.getElementById("bookGenre")?.value?.trim() || null,
 
-  // esto ya lo usabas para la descripción que viene de Google/Manual del paso 1
-  details: document.getElementById("bookDescription").value.trim() || null,
+      // descripción del Paso 1 (auto/manual)
+      details:
+        document.getElementById("bookDescription")?.value?.trim() || null,
 
-  // NUEVO: descripción manual del Paso 2 -> columna books.description
-  description: document.getElementById("bookDescriptionManual")?.value.trim() || null,
+      // descripción manual del Paso 2 -> columna books.description
+      description:
+        document.getElementById("bookDescriptionManual")?.value?.trim() || null,
 
-  condition: document.getElementById("bookCondition").value,
-  language: getFinalLanguage(),
-  cover_type: document.getElementById("bookCover").value,
-  price: Number(document.getElementById("bookPrice").value),
-  is_tradable: document.getElementById("bookExchange").value === "si",
-  // currency, status, created_at: defaults del schema
-};
-
+      condition: document.getElementById("bookCondition")?.value,
+      language: getFinalLanguage(),
+      cover_type: document.getElementById("bookCover")?.value,
+      price: Number(document.getElementById("bookPrice")?.value),
+      is_tradable: document.getElementById("bookExchange")?.value === "si",
+    };
 
     try {
       // 1) Insert en books

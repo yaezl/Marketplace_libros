@@ -306,9 +306,14 @@
     .ml-modal__header {
       display: flex;
       align-items: center;
+      min-width: 0;
       justify-content: space-between;
       padding: 14px 18px;
       border-bottom: 1px solid var(--ml-neutral-200);
+    }
+
+    .ml-modal__header h2 { 
+      font-size: clamp(1rem, 2.2vw, 1.25rem); 
     }
 
     .ml-modal__body {

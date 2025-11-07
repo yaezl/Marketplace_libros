@@ -46,13 +46,10 @@
                     <i class="bi bi-bell"></i>
                 </button>
                 <!-- avatar global -->
-<a href="/template/perfil.html" class="d-inline-block">
-  <img data-user-avatar
-       src="/assets/img/bookealogo.png"
-       width="32" height="32"
-       class="rounded-circle border solo-logueado"
-       alt="perfil" />
-</a>
+                <a href="/template/perfil.html" class="d-inline-block">
+                    <img data-user-avatar src="/assets/img/bookealogo.png" width="32" height="32"
+                        class="rounded-circle border solo-logueado" alt="perfil" />
+                </a>
 
             </div>
         </div>
@@ -145,13 +142,10 @@
                             <i class="bi bi-bell"></i>
                         </button>
                         <!-- avatar global -->
-<a href="/template/perfil.html" class="d-inline-block">
-  <img data-user-avatar
-       src="/assets/img/bookealogo.png"
-       width="32" height="32"
-       class="rounded-circle border solo-logueado"
-       alt="perfil" />
-</a>
+                        <a href="/template/perfil.html" class="d-inline-block">
+                            <img data-user-avatar src="/assets/img/bookealogo.png" width="32" height="32"
+                                class="rounded-circle border solo-logueado" alt="perfil" />
+                        </a>
 
                     </div>
                 </div>
@@ -159,7 +153,7 @@
                 <!-- donde quieras listar las publicaciones del usuario -->
                 <section class="mt-3">
                     <h5 class="mb-2">Mis publicaciones</h5>
-                    <div id="myListingsGrid" class="row row-cols-2 row-cols-md-4 row-cols-xl-6 g-3"></div>
+                    <div id="myListingsGrid" class="row row-cols-2 row-cols-md-3 row-cols-lg-4 g-3"></div>
                 </section>
 
 
@@ -177,7 +171,7 @@
                     <div class="ml-modal__dialog" role="document">
                         <header class="ml-modal__header">
                             <div>
-                                <h2 id="modalTitle" class="h5 m-0">Publicar Libro</h2>
+                                <h2 id="modalTitle" class="h5 m-0 text-truncate">Publicar Libro</h2>
                                 <small class="text-secondary">Completá la información de tu libro para
                                     publicarlo</small>
                             </div>
@@ -314,8 +308,7 @@
                                             <label for="bookDescriptionManual" class="form-label">Descripción
                                                 (opcional)</label>
                                             <textarea id="bookDescriptionManual" class="form-control" rows="3"
-                                                placeholder="Contá el estado real del ejemplar, si tiene marcas, dedicatorias, etc.">
-                                            </textarea>
+                                                placeholder="Contá el estado real del ejemplar, si tiene marcas, dedicatorias, etc."></textarea>
                                             <div class="form-text">Especificá si tu libro presenta detalles ya sea en la
                                                 portada, páginas, etc.</div>
                                         </div>
@@ -351,8 +344,10 @@
                                 </section>
 
                                 <!-- Navegación del wizard -->
-                                <div class="d-flex justify-content-between align-items-center mt-3">
-                                    <button type="button" class="btn-secondary" id="btnPrev" disabled>Atrás</button>
+                                <div class="d-flex justify-content-between align-items-center mt-3 mb-3">
+                                    <button type="button" class="btn btn-outline-secondary" id="btnPrev" disabled>
+                                        <i class="bi bi-chevron-left me-1"></i>Atrás
+                                    </button>
                                     <div class="d-flex gap-2">
                                         <button type="button" class="btn" id="btnNext">Siguiente</button>
                                         <button type="submit" class="btn d-none" id="btnSubmit">Publicar Libro</button>
