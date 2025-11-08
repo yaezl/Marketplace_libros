@@ -45,8 +45,8 @@
 
       <div class="d-flex align-items-center gap-2">
         <div class="dropdown">
-          <button class="btn btn-outline-secondary rounded-4 solo-logueado" id="btnNotiMobile"
-            data-bs-toggle="dropdown" aria-expanded="false" aria-label="Notificaciones">
+          <button class="btn btn-outline-secondary rounded-4 solo-logueado" id="btnNotiMobile" data-bs-toggle="dropdown"
+            aria-expanded="false" aria-label="Notificaciones">
             <i class="bi bi-bell"></i>
           </button>
           <div class="dropdown-menu dropdown-menu-end p-0" id="notiMenuMobile"
@@ -157,12 +157,12 @@
       <main class="col-12 col-lg-10 px-3 px-lg-4 py-3">
         <!-- Barra superior (solo desktop): buscador + iconos + perfil -->
         <div class="d-none d-lg-flex align-items-center justify-content-between mb-3">
-          <form class="flex-grow-1 me-3" role="search">
-            <div class="input-group search-wrap">
-              <span class="input-group-text bg-white border-0"><i class="bi bi-search text-secondary"></i></span>
-              <input type="text" class="form-control border-0" placeholder="Encuentra tu proxima lectura..." />
-            </div>
-          </form>
+          <input id="search-input" type="text" class="form-control border-0"
+            placeholder="Buscar por título, autor o usuario…" autocomplete="off" />
+
+
+          <!-- Notificaciones -->
+
           <div class="d-flex align-items-center gap-2">
             <div class="dropdown">
               <button class="btn btn-outline-secondary rounded-4 solo-logueado" id="btnNotiDesktop"
@@ -198,6 +198,9 @@
           <h3 class="mb-3">Publicaciones recientes</h3>
           <div id="libros-lista" class="row row-cols-2 row-cols-md-3 row-cols-lg-4 g-3"></div>
         </div>
+        <div id="no-results" class="text-center text-secondary mt-4 d-none">
+          <p class="small mb-0">🕵️‍♀️ No se encontraron resultados para tu búsqueda.</p>
+        </div>
 
       </main>
 
@@ -224,6 +227,8 @@
   <script type="module" src="./js/authGuard.js"></script>
   <!-- <script type="module" src="/js/avatar.js"></script>
  -->
+  <script type="module" src="/js/search.js"></script>
+
   <script>
     // Manejar retorno desde el mail de confirmación:
     document.addEventListener("DOMContentLoaded", async () => {
@@ -259,16 +264,6 @@
       window.location.href = '/template/publicacion_libro.html?open=publish';
     });
   </script>
-  <script>
-    // Cargar el buscador desde buscador.html
-    fetch('/buscador.html')
-      .then(res => res.text())
-      .then(html => {
-        document.getElementById('search-container').innerHTML = html;
-      })
-      .catch(err => console.error('Error cargando buscador:', err));
-  </script>
-  <script type="module" src="/js/search.js"></script>
 
 </body>
 

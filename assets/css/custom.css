@@ -630,6 +630,30 @@
 }
 .chip:hover { background: #f8f9fa; }
 
+#no-results {
+  font-size: 1.1rem;
+  color: #6c757d; /* gris neutro */
+  text-align: center;
+  margin-top: 3rem; /* más espacio respecto a las cards */
+  transition: opacity 0.3s ease;
+}
+
+#no-results p {
+  display: inline-block;
+  background: rgba(108,117,125,0.08);
+  padding: 0.6rem 1rem;
+  border-radius: 8px;
+}
+
+#no-results:not(.d-none) {
+  opacity: 1;
+}
+
+#no-results.d-none {
+  opacity: 0;
+}
+
+
 /* estado “activo” (cuando JS le agrega .btn.btn-warning) */
 .chip.btn.btn-warning {
   border-color: transparent;

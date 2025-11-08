@@ -1,247 +1,139 @@
-// public/js/search.js
-import { supabase } from "../supabaseClient.js";
+// js/search.js
+// Filtra las cards ya renderizadas en #libros-lista por título, autor o “Publicado por …”.
+// No toca Supabase. Solo show/hide.
 
-/* ------------------ Constantes ------------------ */
-const GENRES = [
-  "Fantasía","Ciencia ficción","Romance","Misterio","Thriller","Histórico",
-  "No ficción","Biografía","Autoayuda","Infantil","Juvenil","Poesía","Ensayo"
-];
+const $grid  = document.querySelector("#libros-lista");
+const $input = document.querySelector("#search-input");
 
-const MENDOZA_DEPARTAMENTOS = [
-  "Capital","Godoy Cruz","Guaymallén","Las Heras","Luján de Cuyo","Maipú",
-  "Lavalle","San Martín","Junín","Rivadavia","Santa Rosa","La Paz",
-  "Tunuyán","Tupungato","San Carlos","San Rafael","General Alvear","Malargüe"
-];
+// --- helpers ---
+const norm = (s) =>
+  (s || "")
+    .toString()
+    .normalize("NFD")
+    .replace(/\p{Diacritic}/gu, "")
+    .replace(/\s+/g, " ")
+    .trim()
+    .toLowerCase();
 
-const $ = (sel) => document.querySelector(sel);
-const suggestions = $("#suggestions");
-const qInput = $("#q");
-const officialBook = $("#officialBook");
-const userListings = $("#userListings");
+// Devuelve todos los ítems que contengan una card (independiente de clases)
+function getCardItems() {
+  if (!$grid) return [];
+  // hijos directos que tengan .card, y también nietos por si vienen envueltos
+  const direct = Array.from($grid.children).filter((n) =>
+    n.nodeType === 1 && n.querySelector(".card-body")
+  );
+  if (direct.length) return direct;
 
-const titleInput = $("#titleInput");
-const authorInput = $("#authorInput");
-const genreSelect = $("#genreSelect");
-const regionSelect = $("#regionSelect");
-const searchBtn = $("#searchBtn");
-const clearBtn = $("#clearBtn");
-
-/* ------------------ Helpers ------------------ */
-function debounce(fn, wait = 300) {
-  let t; 
-  return (...args) => { clearTimeout(t); t = setTimeout(() => fn(...args), wait); };
-}
-function moneyAR(n) {
-  return Number(n).toLocaleString('es-AR', { style: 'currency', currency: 'ARS' });
-}
-function coverFromImages(book) {
-  return (book.book_images || [])
-    .sort((a,b) => (a.position ?? 0) - (b.position ?? 0))[0]?.url || "";
+  // fallback: buscar cualquier elemento con .card dentro del grid
+  return Array.from($grid.querySelectorAll(":scope *"))
+    .filter((n) => n.querySelector && n.querySelector(".card-body"));
 }
 
-/* ------------------ Inicialización combos ------------------ */
-function fillCombos() {
-  if (!genreSelect || !regionSelect) return;
-  GENRES.forEach(g => {
-    const opt = document.createElement("option");
-    opt.value = g; opt.textContent = g;
-    genreSelect.appendChild(opt);
-  });
-  MENDOZA_DEPARTAMENTOS.forEach(r => {
-    const opt = document.createElement("option");
-    opt.value = r; opt.textContent = r;
-    regionSelect.appendChild(opt);
-  });
-}
+// Reemplazá COMPLETO extractSearchText por esta versión
+function extractSearchText(item) {
+  const body = item.querySelector(".card-body");
+  if (!body) return "";
 
-/* ------------------ Google Books ------------------ */
-async function googleBooksSuggest(q) {
-  if (!q?.trim()) return [];
-  const url = `https://www.googleapis.com/books/v1/volumes?q=${encodeURIComponent(q)}&maxResults=6&printType=books&langRestrict=es`;
-  const res = await fetch(url);
-  const json = await res.json();
-  return json.items || [];
-}
+  const parts = [];
 
-function tmplSuggestion(item) {
-  const vol = item.volumeInfo || {};
-  const title = vol.title ?? "Sin título";
-  const author = (vol.authors && vol.authors[0]) || "Autor desconocido";
-  const thumb = vol.imageLinks?.thumbnail || "";
-  return `
-    <a href="#" class="list-group-item list-group-item-action d-flex align-items-center gap-2" 
-       data-volume='${encodeURIComponent(JSON.stringify(item))}'>
-      ${thumb ? `<img src="${thumb}" width="32" height="48" alt="">` : ""}
-      <div>
-        <div class="fw-semibold">${title}</div>
-        <div class="text-muted small">${author}</div>
-      </div>
-    </a>`;
-}
+  // 1) Intentar encontrar el título en varios selectores comunes
+  const titleEl =
+    body.querySelector("[data-book-title]") ||
+    body.querySelector(".card-title") ||
+    body.querySelector("h6, h5") ||
+    body.querySelector("a.stretched-link, a[href*='libro']") ||
+    body.querySelector(".fw-semibold");
+  const title = titleEl?.textContent?.trim() || "";
+  if (title) parts.push(title);
 
-async function renderOfficial(item) {
-  officialBook.innerHTML = "";
-  if (!item) return;
+  // 2) Autor: primer texto "muted"
+  const author =
+    body.querySelector(".small, .text-muted, small")?.textContent?.trim() || "";
+  if (author) parts.push(author);
 
-  const vol = item.volumeInfo || {};
-  const title = vol.title ?? "Sin título";
-  const author = (vol.authors && vol.authors.join(", ")) || "Autor desconocido";
-  const desc = vol.description ? vol.description.slice(0, 260)+"…" : "";
-  const cover = vol.imageLinks?.thumbnail || vol.imageLinks?.smallThumbnail || "";
-  const googleId = item.id;
-
-  const html = `
-    <div class="card">
-      <div class="card-body d-flex gap-3">
-        ${cover ? `<img src="${cover}" alt="${title}" width="96" class="rounded">` : ""}
-        <div class="flex-grow-1">
-          <h5 class="mb-1">${title}</h5>
-          <div class="text-muted mb-2">${author}</div>
-          <p class="mb-2 small">${desc}</p>
-          <button id="addToWishlist" class="btn btn-sm btn-success">
-            <i class="bi bi-plus-lg"></i> Agregar a Wishlist
-          </button>
-        </div>
-      </div>
-    </div>
-  `;
-  officialBook.innerHTML = html;
-
-  $("#addToWishlist")?.addEventListener("click", async () => {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) {
-      alert("Tenés que iniciar sesión para usar la Wishlist.");
-      return;
+  // 3) “Publicado por …” si existe
+  const muteds = body.querySelectorAll(".small, .text-muted, small");
+  for (const el of muteds) {
+    const txt = el.textContent || "";
+    if (/publicado por/i.test(txt)) {
+      parts.push(txt.trim());
+      break;
     }
-    const payload = {
-      user_id: user.id,
-      google_volume_id: googleId,
-      title,
-      author,
-      cover_url: cover
-    };
-    const { error } = await supabase.from("wishlist").insert(payload);
-    if (error) {
-      console.error(error);
-      alert("No se pudo agregar a la wishlist.");
-    } else {
-      alert("¡Agregado a tu wishlist!");
-    }
-  });
-}
-
-/* ------------------ Publicaciones (Supabase) ------------------ */
-async function fetchUserListings({ q, title, author, genre, region }) {
-  const t = (title || "").trim();
-  const a = (author || "").trim();
-  const search = (t || a || q || "").trim();
-
-  let query = supabase
-    .from("books") // tabla de publicaciones
-    .select(`
-      id, title, author, genre, region, price, condition, created_at,
-      profiles:profiles!books_user_id_fkey(username, avatar_url),
-      book_images(url, position)
-    `)
-    .order("created_at", { ascending: false })
-    .limit(40);
-
-  if (t) query = query.ilike("title", `%${t}%`);
-  if (a) query = query.ilike("author", `%${a}%`);
-  if (!t && !a && search) {
-    query = query.or(`title.ilike.%${search}%,author.ilike.%${search}%`);
   }
-  if (genre) query = query.eq("genre", genre);
-  if (region) query = query.eq("region", region);
 
-  const { data, error } = await query;
-  if (error) { console.error(error); return []; }
+  // 4) Alt de la imagen (muchas portadas incluyen el título aquí)
+  const imgAlt = item.querySelector(".ratio img[alt]")?.getAttribute("alt") || "";
+  if (imgAlt) parts.push(imgAlt);
 
-  return (data || []).map(b => ({ ...b, cover: coverFromImages(b) }));
+  // 5) Fallback: todo el texto del body (por si el título está en otro nodo)
+  if (!parts.length) {
+    parts.push(body.textContent || "");
+  }
+
+  return norm(parts.join(" "));
 }
 
-function renderListings(rows) {
-  userListings.innerHTML = "";
-  if (!rows.length) {
-    userListings.innerHTML = `<div class="text-muted small">No hay publicaciones para esta búsqueda.</div>`;
+
+function indexCards(items = getCardItems()) {
+  items.forEach((el) => {
+    el.dataset.search = extractSearchText(el);
+    // Aseguro que el ítem pueda ocultarse/mostrarse
+    el.classList.remove("d-none");
+  });
+}
+
+function applyFilter(term) {
+  const q = norm(term);
+  const items = getCardItems();
+
+  if (!q) {
+    items.forEach((el) => el.classList.remove("d-none"));
     return;
   }
-  const cards = rows.map(b => `
-    <div class="col-12 col-md-6 col-lg-4">
-      <div class="card h-100">
-        ${b.cover ? `<img src="${b.cover}" class="card-img-top" alt="${b.title}">` : ""}
-        <div class="card-body d-flex flex-column">
-          <h6 class="mb-1">${b.title}</h6>
-          <div class="text-muted small mb-2">${b.author || ""}</div>
-          <div class="mt-auto d-flex justify-content-between align-items-center">
-            <span class="fw-semibold">${b.price != null ? moneyAR(b.price) : "—"}</span>
-            <a href="/publicacion/${b.id}" class="btn btn-sm btn-outline-primary">Ver</a>
-          </div>
-        </div>
-      </div>
-    </div>
-  `).join("");
-  userListings.innerHTML = cards;
+
+  items.forEach((el) => {
+    // si aún no tiene index, lo genero ahora
+    if (!el.dataset.search) el.dataset.search = extractSearchText(el);
+    const hay = (el.dataset.search || "").includes(q);
+    el.classList.toggle("d-none", !hay);
+  });
+
+  toggleNoResults();
 }
 
-/* ------------------ Interacciones ------------------ */
-const runSuggest = debounce(async () => {
-  if (!qInput) return;
-  const q = qInput.value.trim();
-  if (!q) { suggestions.style.display = "none"; suggestions.innerHTML = ""; return; }
-  const items = await googleBooksSuggest(q);
-  if (!items.length) { suggestions.style.display = "none"; suggestions.innerHTML = ""; return; }
-  suggestions.innerHTML = items.map(tmplSuggestion).join("");
-  suggestions.style.display = "block";
-}, 300);
+// Mostrar mensaje si no quedan cards visibles
+function toggleNoResults() {
+  const $msg = document.querySelector("#no-results");
+  if (!$msg) return;
+  const visible = Array.from(getCardItems()).some(
+    (el) => !el.classList.contains("d-none")
+  );
+  $msg.classList.toggle("d-none", visible);
+}
 
-qInput?.addEventListener("input", runSuggest);
 
-// Selección de sugerencia
-suggestions?.addEventListener("click", async (ev) => {
-  const a = ev.target.closest("a.list-group-item");
-  if (!a) return;
-  ev.preventDefault();
-  suggestions.style.display = "none";
-  const item = JSON.parse(decodeURIComponent(a.getAttribute("data-volume")));
-  qInput.value = item.volumeInfo?.title || qInput.value;
+function debounce(fn, ms = 250) {
+  let t; return (...args) => { clearTimeout(t); t = setTimeout(() => fn(...args), ms); };
+}
 
-  await renderOfficial(item);
-  const rows = await fetchUserListings({
-    q: item.volumeInfo?.title || qInput.value,
-    title: titleInput?.value,
-    author: authorInput?.value,
-    genre: genreSelect?.value,
-    region: regionSelect?.value
+// --- init ---
+indexCards();
+
+// Si main.js agrega/repinta, reindexamos automáticamente
+if ($grid) {
+  const obs = new MutationObserver((muts) => {
+    const added = [];
+    muts.forEach((m) => {
+      m.addedNodes.forEach((n) => {
+        if (n.nodeType === 1) {
+          if (n.querySelector?.(".card-body")) added.push(n);
+          n.querySelectorAll?.(".card-body")?.forEach?.(() => added.push(n));
+        }
+      });
+    });
+    if (added.length) indexCards(getCardItems());
   });
-  renderListings(rows);
-});
+  obs.observe($grid, { childList: true, subtree: true });
+}
 
-// Botones Buscar / Cancelar
-searchBtn?.addEventListener("click", async () => {
-  suggestions.style.display = "none";
-  officialBook.innerHTML = ""; // si no se eligió sugerencia
-  const rows = await fetchUserListings({
-    q: qInput?.value,
-    title: titleInput?.value,
-    author: authorInput?.value,
-    genre: genreSelect?.value,
-    region: regionSelect?.value
-  });
-  renderListings(rows);
-});
-
-clearBtn?.addEventListener("click", () => {
-  if (qInput) qInput.value = "";
-  if (titleInput) titleInput.value = "";
-  if (authorInput) authorInput.value = "";
-  if (genreSelect) genreSelect.value = "";
-  if (regionSelect) regionSelect.value = "";
-  suggestions.style.display = "none";
-  suggestions.innerHTML = "";
-  officialBook.innerHTML = "";
-  userListings.innerHTML = "";
-});
-
-/* ------------------ Init ------------------ */
-fillCombos();
+$input?.addEventListener("input", debounce((e) => applyFilter(e.target.value || ""), 250));
