@@ -13,9 +13,9 @@
   <link rel="icon" type="image/png" href="assets/img/bookealogo.png" />
   <link rel="stylesheet" href="/assets/css/custom.css">
   <script>
-  // Marcamos "estado de auth desconocido" lo más temprano posible
-  document.documentElement.classList.add('auth-unknown');
-</script>
+    // Marcamos "estado de auth desconocido" lo más temprano posible
+    document.documentElement.classList.add('auth-unknown');
+  </script>
 </head>
 
 <body>
@@ -178,6 +178,10 @@
   <a href="#" class="fab" id="fabFromIndex" title="Publicar libro" data-auth-required>
     <i class="bi bi-plus-lg fs-4"></i>
   </a>
+
+  <!-- Toasts -->
+  <div id="toastArea" class="toast-container position-fixed top-0 end-0 p-3" style="z-index:1080;"></div>
+
 
 
   <!-- Bootstrap JS (bundle con Popper) -->

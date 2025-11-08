@@ -54,10 +54,38 @@ async function toggleLike(bookId, likedSet, iconEl) {
   }
 }
 
+function toast(message, variant = "success") {
+  let wrap = document.getElementById("toastArea");
+  if (!wrap) {
+    // auto-crear si no existe (evita caer a alert)
+    wrap = document.createElement("div");
+    wrap.id = "toastArea";
+    wrap.className = "toast-container position-fixed top-0 end-0 p-3";
+    wrap.style.zIndex = "1080";
+    document.body.appendChild(wrap);
+  }
+  const el = document.createElement("div");
+  el.className = `toast align-items-center text-bg-${variant} border-0`;
+  el.setAttribute("role", "alert");
+  el.setAttribute("aria-live", "assertive");
+  el.setAttribute("aria-atomic", "true");
+  el.innerHTML = `
+    <div class="d-flex">
+      <div class="toast-body">${message}</div>
+      <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Cerrar"></button>
+    </div>`;
+  wrap.appendChild(el);
+  const t = new bootstrap.Toast(el, { delay: 2500 });
+  t.show();
+  el.addEventListener("hidden.bs.toast", () => el.remove());
+}
+
 // card
 function renderBookCard({ book, container, isOwner, likedSet }) {
   const col = document.createElement("div");
   col.className = "col";
+  col.dataset.bookId = String(book.id);
+  if (book.status) col.dataset.status = book.status; // para el toggle
 
   const cover = book.cover_url || coverFromImages(book);
   const publisher =
@@ -68,14 +96,54 @@ function renderBookCard({ book, container, isOwner, likedSet }) {
   const isLiked = !isOwner && likedSet?.has?.(book.id);
 
   col.innerHTML = `
-  <div class="card h-100 shadow-sm border-0 rounded-3">
+  <div class="card h-100 shadow-sm border-0 rounded-3 position-relative">
     <div class="position-relative">
       <div class="ratio ratio-3x4">
         <img src="${cover}" alt="${
     book.title
   }" class="w-100 h-100 object-fit-cover">
       </div>
-      ${isOwner ? "" : ""}
+
+      ${
+        isOwner
+          ? `
+      <div class="position-absolute top-0 end-0 p-1">
+        <div class="dropdown">
+          <button class="btn btn-light btn-sm rounded-circle border-0" data-bs-toggle="dropdown" aria-expanded="false">
+            <i class="bi bi-three-dots"></i>
+          </button>
+          <ul class="dropdown-menu dropdown-menu-end">
+            <li>
+              <a class="dropdown-item" href="#" data-action="edit" data-id="${
+                book.id
+              }">
+                <i class="bi bi-pencil-square me-2"></i>Editar
+              </a>
+            </li>
+            <li>
+              <a class="dropdown-item" href="#" data-action="toggle" data-id="${
+                book.id
+              }">
+                <i class="bi bi-eye-slash me-2"></i><span data-vis-label>${
+                  (book.status || "disponible") === "vendido"
+                    ? "Hacer pública"
+                    : "Ocultar (privado)"
+                }</span>
+              </a>
+            </li>
+            <li><hr class="dropdown-divider"></li>
+            <li>
+              <a class="dropdown-item text-danger" href="#" data-action="delete" data-id="${
+                book.id
+              }">
+                <i class="bi bi-trash3 me-2"></i>Eliminar
+              </a>
+            </li>
+          </ul>
+        </div>
+      </div>`
+          : ``
+      }
     </div>
 
     <div class="card-body p-2">
@@ -102,8 +170,7 @@ function renderBookCard({ book, container, isOwner, likedSet }) {
             <i class="bi ${
               isLiked ? "bi-heart-fill text-danger" : "bi-heart"
             }"></i>
-          </button>
-        `
+          </button>`
             : ``
         }
         <a class="btn btn-sm btn-outline-primary" href="/template/libro.html?id=${
@@ -111,10 +178,9 @@ function renderBookCard({ book, container, isOwner, likedSet }) {
         }">Ver más</a>
       </div>
     </div>
-  </div>
-`;
+  </div>`;
 
-  // like toggle
+  // like toggle (para cards de otros)
   const likeBtn = col.querySelector("[data-like]");
   if (likeBtn) {
     likeBtn.addEventListener("click", async () => {
@@ -123,6 +189,70 @@ function renderBookCard({ book, container, isOwner, likedSet }) {
       await toggleLike(bookId, likedSet, icon);
     });
   }
+
+  // owner actions (⋯)
+  col.querySelectorAll("[data-action]").forEach((a) => {
+    a.addEventListener("click", async (ev) => {
+      ev.preventDefault();
+      const id = a.getAttribute("data-id");
+      const action = a.getAttribute("data-action");
+
+      if (action === "edit") {
+        // later: abrir modal/edición
+        toast("Edición todavía no disponible", "warning");
+        return;
+      }
+
+      if (action === "toggle") {
+        const { data: auth } = await supabase.auth.getUser();
+        const uid = auth?.user?.id || null;
+
+        const current = col.dataset.status || "disponible";
+        const next = current === "vendido" ? "disponible" : "vendido";
+
+        const { error } = await supabase
+          .from("books")
+          .update({ status: next })
+          .eq("id", id)
+          .eq("owner", uid);
+
+        if (error) {
+          console.error("[books.toggle visibility] error:", error);
+          return toast("No se pudo cambiar la visibilidad", "danger");
+        }
+
+        col.dataset.status = next;
+
+        // actualizar label del menú
+        const lbl = col.querySelector("[data-vis-label]");
+        if (lbl)
+          lbl.textContent =
+            next === "vendido" ? "Hacer pública" : "Ocultar (privado)";
+
+        // Si estoy en Descubre (grid #libros-lista) y lo oculto, quito la card sin recargar
+        const inDiscover = !!col.closest("#libros-lista");
+        if (inDiscover && next === "vendido") {
+          col.remove();
+          toast("Publicación ocultada", "success");
+          return;
+        }
+
+        // Si estoy en "Mis publicaciones", dejo la card y muestro toast
+        toast(
+          next === "vendido" ? "Publicación ocultada" : "Publicación publicada",
+          "success"
+        );
+        return;
+      }
+
+      if (action === "delete") {
+        const { error } = await supabase.from("books").delete().eq("id", id);
+        if (error) return toast("No se pudo eliminar la publicación", "danger");
+        col.remove();
+        toast("Publicación eliminada", "success");
+      }
+    });
+  });
 
   container.appendChild(col);
 }
@@ -183,9 +313,9 @@ async function loadMyListings() {
     .from("books")
     .select(
       `
-      id, title, author, price, condition, created_at,
-      book_images ( url, position )
-    `
+    id, title, author, price, condition, status, created_at,
+    book_images ( url, position )
+  `
     )
     .eq("owner", user.id)
     .order("created_at", { ascending: false });
