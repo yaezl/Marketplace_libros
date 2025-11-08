@@ -760,14 +760,14 @@ function finalizeMyBookCardCover(bookId, newUrl) {
 
     try {
       // 1) Insert rápido del book
-      const { data, error } = await supabase.from('books').insert(row).select().single();
+      const { data, error } = await supabase.from('books').insert(book).select().single();
       if (error) {
         console.error('[publish]', error);
         toast(`No se pudo publicar el libro: ${error.message}`, 'danger');
         return;
       }
 
-      const bookId = inserted.id;
+      const bookId = data.id;
 
       // 2) Pintar card optimista con badge "Publicando…"
       const publisher = await getCurrentProfileName();
@@ -807,8 +807,8 @@ function finalizeMyBookCardCover(bookId, newUrl) {
       setStep(1);
       closeModal?.();
     } catch (err) {
-      console.error(err);
-      toast("Error al publicar el libro. Intentá de nuevo.", "danger");
+      console.error('[publish]', err);
+    toast(`Error al publicar el libro: ${err.message || err}`, 'danger');
     } finally {
       // restaurar botones
       btnSubmit.disabled = false;
