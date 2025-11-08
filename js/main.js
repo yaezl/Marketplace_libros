@@ -13,6 +13,118 @@ const coverFromImages = (book) => {
 const humanize = (s = "") =>
   s.replace(/[_-]+/g, " ").replace(/\b\w/g, (c) => c.toUpperCase()); // "como-nuevo" -> "Como Nuevo"
 
+/* ===== Notifications API ===== */
+async function fetchNotifications(limit = 20) {
+  const { data: auth } = await supabase.auth.getUser();
+  const uid = auth?.user?.id;
+  if (!uid) return [];
+
+  const { data, error } = await supabase
+    .from('notifications')
+    .select('id, type, payload, read_at, created_at')
+    .order('created_at', { ascending: false })
+    .limit(limit);
+
+  if (error) { console.error('[noti] select', error); return []; }
+
+  return data || [];
+}
+
+async function markAllRead() {
+  const { data: auth } = await supabase.auth.getUser();
+  const uid = auth?.user?.id;
+  if (!uid) return;
+  await supabase.from('notifications')
+    .update({ read_at: new Date().toISOString() })
+    .is('read_at', null);
+}
+
+async function markOneRead(id) {
+  await supabase.from('notifications')
+    .update({ read_at: new Date().toISOString() })
+    .eq('id', id);
+}
+
+function renderNotiList(listEl, emptyEl, items) {
+  if (!listEl || !emptyEl) return;
+  if (!items.length) {
+    listEl.innerHTML = '';
+    emptyEl.classList.remove('d-none');
+    return;
+  }
+  emptyEl.classList.add('d-none');
+  listEl.innerHTML = items.map(n => {
+    const p = n.payload || {};
+    const title = p.title || 'Nueva publicación';
+    const author = p.author ? ` · ${p.author}` : '';
+    const when = new Date(n.created_at).toLocaleString('es-AR', { dateStyle: 'short', timeStyle: 'short' });
+    const isUnread = !n.read_at;
+
+    return `
+      <a href="#" class="list-group-item list-group-item-action ${isUnread ? 'fw-semibold' : ''}"
+         data-noti="${n.id}" data-book="${p.book_id || ''}">
+        <div class="d-flex justify-content-between">
+          <div class="me-2">
+            <div>${title}${author}</div>
+            <div class="text-secondary">${when}</div>
+          </div>
+          <i class="bi bi-chevron-right"></i>
+        </div>
+      </a>`;
+  }).join('');
+}
+
+async function loadNotiInto(prefix) {
+  const listEl  = document.getElementById(`notiList${prefix}`);
+  const emptyEl = document.getElementById(`notiEmpty${prefix}`);
+  const items = await fetchNotifications(30);
+  renderNotiList(listEl, emptyEl, items);
+
+  // click en cada item
+  listEl?.querySelectorAll('[data-noti]').forEach(el => {
+    el.addEventListener('click', async (ev) => {
+      ev.preventDefault();
+      const id = el.getAttribute('data-noti');
+      const bookId = el.getAttribute('data-book');
+
+      if (!bookId) {
+        toast('Notificación sin destino', 'warning');
+        return;
+      }
+
+      // ¿sigue disponible?
+      const { data: row, error } = await supabase
+        .from('books')
+        .select('status')
+        .eq('id', bookId)
+        .maybeSingle();
+
+      await markOneRead(id);
+
+      if (!error && row && row.status === 'disponible') {
+        window.location.href = `/template/libro.html?id=${bookId}`;
+      } else {
+        toast('La publicación ya no está disponible', 'warning');
+      }
+    });
+  });
+}
+
+// ganchos de dropdown: cuando se abre, cargo
+document.addEventListener('DOMContentLoaded', () => {
+  const ddDesktop = document.getElementById('btnNotiDesktop');
+  ddDesktop?.addEventListener('show.bs.dropdown', () => loadNotiInto('Desktop'));
+  document.getElementById('notiMarkAll')?.addEventListener('click', async (e) => {
+    e.preventDefault();
+    await markAllRead();
+    await loadNotiInto('Desktop');
+  });
+
+  const ddMobile = document.getElementById('btnNotiMobile');
+  ddMobile?.addEventListener('show.bs.dropdown', () => loadNotiInto('Mobile'));
+});
+
+
 // ===== Likes (book_likes) =====
 async function getMyLikedSet() {
   const { data: auth } = await supabase.auth.getUser();

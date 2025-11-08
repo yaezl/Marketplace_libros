@@ -760,12 +760,13 @@ function finalizeMyBookCardCover(bookId, newUrl) {
 
     try {
       // 1) Insert rápido del book
-      const { data: inserted, error: insErr } = await supabase
-        .from("books")
-        .insert(book)
-        .select("id")
-        .single();
-      if (insErr) throw insErr;
+      const { data, error } = await supabase.from('books').insert(row).select().single();
+      if (error) {
+        console.error('[publish]', error);
+        toast(`No se pudo publicar el libro: ${error.message}`, 'danger');
+        return;
+      }
+
       const bookId = inserted.id;
 
       // 2) Pintar card optimista con badge "Publicando…"
