@@ -235,3 +235,81 @@ if (!grid || !btnAdd) {
       .subscribe();
   } catch (_) {}
 }
+
+/* ===================== Me gustaron ===================== */
+const gridLiked  = document.getElementById('grid-me-gustaron');
+const emptyLiked = document.getElementById('empty-me-gustaron');
+
+function likedCardTpl(item) {
+  const cover = item.cover || '/assets/img/placeholder-3x4.png';
+  return `
+    <div class="col">
+      <article class="book-card h-100 p-2">
+        <div class="ratio ratio-3x4 mb-2">
+          <img class="obj-cover" src="${cover}" alt="${item.title || 'Portada'}" />
+        </div>
+        <div class="small text-secondary">${item.author || ''}</div>
+        <h3 class="fs-6 clamp-2 mb-2">${item.title || ''}</h3>
+        <div class="d-flex align-items-center justify-content-between">
+          <a class="btn btn-sm btn-outline-primary" href="/template/libro.html?id=${item.id}">Ver más</a>
+          <button class="btn btn-sm btn-outline-secondary" data-unlike="${item.id}" title="Quitar de Me gustaron">
+            <i class="bi bi-heartbreak"></i>
+          </button>
+        </div>
+      </article>
+    </div>`;
+}
+
+async function loadLiked() {
+  if (!gridLiked) return;
+
+  const { data: auth } = await supabase.auth.getUser();
+  if (!auth?.user) {
+    gridLiked.innerHTML = '';
+    emptyLiked?.classList.remove('d-none');
+    return;
+  }
+
+  // Traer libros likeados (join por FK book_likes.book_id -> books.id)
+  const { data, error } = await supabase
+    .from('book_likes')
+    .select(`
+      book:books (
+        id, title, author,
+        book_images (url, position)
+      )
+    `)
+    .order('created_at', { ascending: false });
+
+  if (error) { console.error(error); return; }
+
+  const items = (data || []).map(r => {
+    const b = r.book;
+    if (!b) return null;
+    const imgs = (b.book_images || []).slice().sort((a,b)=>(a.position??0)-(b.position??0));
+    return { id: b.id, title: b.title, author: b.author, cover: imgs[0]?.url || null };
+  }).filter(Boolean);
+
+  if (!items.length) {
+    gridLiked.innerHTML = '';
+    emptyLiked?.classList.remove('d-none');
+    return;
+  }
+
+  emptyLiked?.classList.add('d-none');
+  gridLiked.innerHTML = items.map(likedCardTpl).join('');
+
+  // quitar like
+  gridLiked.querySelectorAll('[data-unlike]').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const id = btn.getAttribute('data-unlike');
+      const { error } = await supabase.from('book_likes').delete().eq('book_id', id);
+      if (error) { alert('No se pudo quitar.'); return; }
+      await loadLiked();
+    });
+  });
+}
+
+// Cargar al mostrar la pestaña
+document.getElementById('tab-me-gustaron')?.addEventListener('shown.bs.tab', loadLiked);
+

@@ -175,3 +175,100 @@ function renderBook(book) {
   // breadcrumbs según origen (ver punto 3)
   applyDynamicBreadcrumb();
 }
+
+/* ---------- like en detalle ---------- */
+(async function hookLikeInDetail() {
+  const btn = document.getElementById('btn-like');
+  if (!btn) return;
+
+  const id = new URLSearchParams(location.search).get("id");
+  if (!id) return;
+
+  const { data: auth } = await supabase.auth.getUser();
+  if (!auth?.user) return;
+
+  // estado inicial
+  try {
+    const { data, error } = await supabase.from('book_likes').select('book_id').eq('book_id', id).maybeSingle();
+    if (!error && data) btn.innerHTML = '<i class="bi bi-heart-fill text-danger"></i>';
+  } catch {}
+
+  btn.addEventListener('click', async () => {
+    const icon = btn.querySelector('i');
+    await toggleLike(id, await getMyLikedSet(), icon); // reusa helpers de main.js si están globales
+  });
+})();
+
+/* ---------- Like (book_likes) en detalle ---------- */
+(async function attachDetailLike() {
+  const btn = document.getElementById('btn-like');
+  if (!btn) return; // si no existe en el HTML, no hacemos nada
+
+  const bookId = new URLSearchParams(location.search).get('id');
+  if (!bookId) return;
+
+  // helpers locales (standalone)
+  async function getUserId() {
+    const { data } = await supabase.auth.getUser();
+    return data?.user?.id || null;
+  }
+  async function isLiked(id) {
+    const { data, error } = await supabase
+      .from('book_likes')
+      .select('book_id')
+      .eq('book_id', id)
+      .maybeSingle();
+    if (error && error.code !== 'PGRST116') console.debug('[like] select error', error);
+    return !!data;
+  }
+  async function setIcon(liked) {
+    btn.innerHTML = liked ? '<i class="bi bi-heart-fill text-danger"></i>' : '<i class="bi bi-heart"></i>';
+  }
+
+  // 1) Estado inicial + ocultar si es tuyo
+  const uid = await getUserId();
+  // Si no hay sesión, mostramos vacío y, al click, pedimos login
+  if (!uid) await setIcon(false);
+
+  try {
+    // Traemos el book para saber owner (ya lo tenés en renderBook, pero acá lo resolvemos sin depender del scope)
+    const { data: bookRow } = await supabase.from('books').select('owner').eq('id', bookId).single();
+
+    // Si es tuyo: ocultar botón y salir
+    if (uid && bookRow && bookRow.owner === uid) {
+      btn.classList.add('d-none');
+      return;
+    }
+
+    // Estado inicial del corazón
+    const liked = uid ? await isLiked(bookId) : false;
+    await setIcon(liked);
+  } catch (e) {
+    console.debug('[like] init error', e);
+  }
+
+  // 2) Toggle
+  btn.addEventListener('click', async () => {
+    const userId = await getUserId();
+    if (!userId) return alert('Necesitás iniciar sesión.');
+
+    // mirar estado actual por el icono
+    const isFill = !!btn.querySelector('.bi-heart-fill');
+
+    try {
+      if (!isFill) {
+        const { error } = await supabase.from('book_likes').insert({ user_id: userId, book_id: bookId });
+        if (error) throw error;
+        await setIcon(true);
+      } else {
+        const { error } = await supabase.from('book_likes').delete().eq('book_id', bookId);
+        if (error) throw error;
+        await setIcon(false);
+      }
+    } catch (e) {
+      console.error('[like] toggle error', e);
+      alert('No pudimos actualizar tu “Me gustaron”.');
+    }
+  });
+})();
+

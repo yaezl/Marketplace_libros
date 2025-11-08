@@ -15,9 +15,9 @@
   <link rel="icon" type="image/png" href="/assets/img/bookealogo.png" />
   <link rel="stylesheet" href="/assets/css/custom.css">
   <script>
-  // Marcamos "estado de auth desconocido" lo más temprano posible
-  document.documentElement.classList.add('auth-unknown');
-</script>
+    // Marcamos "estado de auth desconocido" lo más temprano posible
+    document.documentElement.classList.add('auth-unknown');
+  </script>
 </head>
 
 <body>
@@ -50,13 +50,10 @@
           <i class="bi bi-bell"></i>
         </button>
         <!-- avatar global -->
-<a href="/template/perfil.html" class="d-inline-block">
-  <img data-user-avatar
-       src="/assets/img/bookealogo.png"
-       width="32" height="32"
-       class="rounded-circle border solo-logueado"
-       alt="perfil" />
-</a>
+        <a href="/template/perfil.html" class="d-inline-block">
+          <img data-user-avatar src="/assets/img/bookealogo.png" width="32" height="32"
+            class="rounded-circle border solo-logueado" alt="perfil" />
+        </a>
 
       </div>
     </div>
@@ -141,13 +138,10 @@
               <i class="bi bi-bell"></i>
             </button>
             <!-- avatar global -->
-<a href="/template/perfil.html" class="d-inline-block">
-  <img data-user-avatar
-       src="/assets/img/bookealogo.png"
-       width="32" height="32"
-       class="rounded-circle border solo-logueado"
-       alt="perfil" />
-</a>
+            <a href="/template/perfil.html" class="d-inline-block">
+              <img data-user-avatar src="/assets/img/bookealogo.png" width="32" height="32"
+                class="rounded-circle border solo-logueado" alt="perfil" />
+            </a>
 
           </div>
         </div>
@@ -189,47 +183,47 @@
             <div class="text-center py-5 d-none" id="empty-quiero-leer">
               <!-- SE AUTOCOMPLETA CARD -->
             </div>
+          </div>
 
-
-            <!-- ===== Me gustaron (placeholder) ===== -->
-            <div class="tab-pane fade" id="pane-me-gustaron" role="tabpanel" aria-labelledby="tab-me-gustaron">
-              <div class="text-center py-5">
-                <h4 class="h6 mb-1">Acá van tus “Me gustaron”.</h4>
-                <p class="text-secondary small m-0">Lo conectamos cuando terminemos “Quiero leer”.</p>
-              </div>
+          <!-- ===== Me gustaron ===== -->
+          <div class="tab-pane fade" id="pane-me-gustaron" role="tabpanel" aria-labelledby="tab-me-gustaron">
+            <div class="row row-cols-2 row-cols-md-3 row-cols-lg-4 g-3" id="grid-me-gustaron"></div>
+            <div class="text-center py-5 d-none" id="empty-me-gustaron">
+              <h4 class="h6 mb-1">Todavía no marcaste publicaciones con ❤️.</h4>
+              <p class="text-secondary small m-0">Tocá el corazón en “Descubre” para guardarlas acá.</p>
             </div>
           </div>
 
+        </div>
 
-
-          <!-- Hooks mínimos (sin romper tus módulos) -->
-          <script>
-            // Comentario de referencia para después:
-            // - Este switch guardará un booleano `notify_if_appears` por item.
-            // - Luego disparará notificaciones cuando detectemos una publicación que matchee el libro (título/autor/ISBN).
-            // Todos estos solo disparan el flujo del picker de Google Books (lo implementamos en el paso JS con tu modal actual)
-            const addButtons = ['btn-add-wishlist', 'empty-add', 'fabWishlist'];
-            addButtons.forEach(id => {
-              const el = document.getElementById(id);
-              if (el) el.addEventListener('click', (e) => {
-                e.preventDefault();
-                // TODO (Paso 2): abrir buscador Google Books (igual a Publicar) y guardar en Supabase.
-                // window.dispatchEvent(new CustomEvent('wishlist:add')); // ejemplo de hook si querés escucharlo desde /js/main.js
-              });
+        <!-- Hooks mínimos (sin romper tus módulos) -->
+        <script>
+          // Comentario de referencia para después:
+          // - Este switch guardará un booleano `notify_if_appears` por item.
+          // - Luego disparará notificaciones cuando detectemos una publicación que matchee el libro (título/autor/ISBN).
+          // Todos estos solo disparan el flujo del picker de Google Books (lo implementamos en el paso JS con tu modal actual)
+          const addButtons = ['btn-add-wishlist', 'empty-add', 'fabWishlist'];
+          addButtons.forEach(id => {
+            const el = document.getElementById(id);
+            if (el) el.addEventListener('click', (e) => {
+              e.preventDefault();
+              // TODO (Paso 2): abrir buscador Google Books (igual a Publicar) y guardar en Supabase.
+              // window.dispatchEvent(new CustomEvent('wishlist:add')); // ejemplo de hook si querés escucharlo desde /js/main.js
             });
-          </script>
+          });
+        </script>
 
-          <!-- Necesario para tabs/pills y el modal -->
-          <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"
-            crossorigin="anonymous"></script>
-          <script type="module" src="/js/wishlist.js"></script>
-          <script type="module" src="/js/main.js"></script>
-          <script type="module" src="/js/authGuard.js"></script>
-          <script>
-            document.querySelectorAll('#wishlist-tabs [data-bs-toggle="pill"]').forEach(el => {
-              if (!bootstrap.Tab.getInstance(el)) new bootstrap.Tab(el);
-            });
-          </script>
+        <!-- Necesario para tabs/pills y el modal -->
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"
+          crossorigin="anonymous"></script>
+        <script type="module" src="/js/wishlist.js"></script>
+        <script type="module" src="/js/main.js"></script>
+        <script type="module" src="/js/authGuard.js"></script>
+        <script>
+          document.querySelectorAll('#wishlist-tabs [data-bs-toggle="pill"]').forEach(el => {
+            if (!bootstrap.Tab.getInstance(el)) new bootstrap.Tab(el);
+          });
+        </script>
 
       </main>
 
