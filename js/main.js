@@ -310,8 +310,7 @@ function renderBookCard({ book, container, isOwner, likedSet }) {
       const action = a.getAttribute("data-action");
 
       if (action === "edit") {
-        // later: abrir modal/edición
-        toast("Edición todavía no disponible", "warning");
+        document.dispatchEvent(new CustomEvent('bookea:edit', { detail: { id } }));
         return;
       }
 

@@ -450,6 +450,9 @@ function finalizeMyBookCardCover(bookId, newUrl) {
 
   let igFiles = []; // Array<File>
   let igCurrent = 0; // índice de imagen activa
+  // === edición + mínimo de fotos ===
+  let editingId = null;
+  const MIN_PHOTOS = 3;
 
   // Helpers (uploader)
   const isImage = (f) => f && f.type && f.type.startsWith("image/");
@@ -713,6 +716,29 @@ function finalizeMyBookCardCover(bookId, newUrl) {
     grid.prepend(col);
   }
 
+  function prefillFormFromBook(row) {
+  document.getElementById("bookTitle").value = row.title || "";
+  document.getElementById("bookAuthor").value = row.author || "";
+  document.getElementById("bookGenre").value = row.genre || "";
+  document.getElementById("bookDescription").value = row.details || "";
+  document.getElementById("bookDescriptionManual").value = row.description || "";
+  document.getElementById("bookCondition").value = row.condition || "nuevo";
+  document.getElementById("bookLanguage").value = row.language || "es";
+  document.getElementById("bookCover").value = row.cover_type || "blanda";
+  document.getElementById("bookPrice").value = row.price ?? "";
+  document.getElementById("bookExchange").value = row.is_tradable ? "si" : "no";
+
+  // sincronizar UI de “idioma otro”
+  const langSel = document.getElementById("bookLanguage");
+  const langOther = document.getElementById("bookLanguageOther");
+  const langHelp = document.getElementById("bookLanguageHelp");
+  const isOther = langSel.value === "otro";
+  langOther.classList.toggle("d-none", !isOther);
+  langHelp.classList.toggle("d-none", !isOther);
+  langOther.required = isOther;
+  if (!isOther) langOther.value = "";
+}
+
   // ===== Submit: crear book + subir imágenes + pintar la card =====
   const formEl = document.getElementById("bookForm");
   formEl.addEventListener("submit", onPublish);
@@ -720,12 +746,16 @@ function finalizeMyBookCardCover(bookId, newUrl) {
   async function onPublish(e) {
     e.preventDefault();
 
-    if (igFiles.length === 0) {
-      toast("Subí al menos una foto del ejemplar 😊", "warning");
+    // Mínimo de fotos: 3 al CREAR. En edición no tocamos imágenes.
+  if (!editingId) {
+    if (!Array.isArray(igFiles) || igFiles.length < MIN_PHOTOS) {
+      const faltan = MIN_PHOTOS - (igFiles?.length || 0);
+      toast(`Agregá al menos ${MIN_PHOTOS} fotos (te faltan ${Math.max(faltan,1)}).`, "warning");
       setStep(3);
-      igStage.focus();
+      igStage?.focus();
       return;
     }
+  }
 
     const {
       data: { user },
@@ -760,14 +790,61 @@ function finalizeMyBookCardCover(bookId, newUrl) {
 
     try {
       // 1) Insert rápido del book
+      let bookId;
+
+      if (editingId) {
+        // === UPDATE (no tocar imágenes) ===
+        const changes = { ...book };
+        // por seguridad, no tocar portada ni campos de imágenes desde la edición básica
+        delete changes.cover_url;
+
+        const { data: up, error: upErr } = await supabase
+          .from('books')
+          .update(changes)
+          .eq('id', editingId)
+          .select()
+          .single();
+
+        if (upErr) {
+          console.error('[publish/update]', upErr);
+          toast(`No se pudo guardar: ${upErr.message}`, 'danger');
+          return;
+        }
+
+        bookId = up.id;
+
+        // refrescar card en “Mis publicaciones” si está en el DOM
+        const col = document.querySelector(`.col[data-book-id="${bookId}"]`);
+        if (col) {
+          col.querySelector('.fw-semibold.text-truncate')?.replaceChildren(document.createTextNode(up.title || ""));
+          col.querySelector('.badge') && (col.querySelector('.badge').textContent = humanize(up.condition || ""));
+          const pe = col.querySelector('.fw-semibold.mt-2');
+          if (pe) pe.textContent = Number(up.price).toLocaleString("es-AR", { style:"currency", currency:"ARS" });
+        }
+
+        toast('Cambios guardados', 'success');
+
+        // reset edición
+        editingId = null;
+        igFiles = []; // no tocamos imágenes existentes
+        renderStage(); renderTray();
+        formEl.reset();
+        setStep(1);
+        closeModal?.();
+        return;
+      }
+
+      // === INSERT (flujo original) ===
       const { data, error } = await supabase.from('books').insert(book).select().single();
       if (error) {
         console.error('[publish]', error);
         toast(`No se pudo publicar el libro: ${error.message}`, 'danger');
         return;
       }
+      bookId = data.id;
 
-      const bookId = data.id;
+      // (mantener lo que ya tenías: pintar card “Publicando…”, subir imágenes, etc.)
+
 
       // 2) Pintar card optimista con badge "Publicando…"
       const publisher = await getCurrentProfileName();
@@ -863,6 +940,47 @@ function finalizeMyBookCardCover(bookId, newUrl) {
 
   // ejecutá el auto-open después de montar todo
   document.addEventListener("DOMContentLoaded", autoOpenIfRequested);
+
+  // Abrir modal en modo edición (escucha el CustomEvent disparado desde main.js)
+document.addEventListener('bookea:edit', async (ev) => {
+  const id = ev.detail?.id;
+  if (!id) return;
+
+  try {
+    const { data: row, error } = await supabase
+      .from("books")
+      .select("id, title, author, genre, details, description, condition, language, cover_type, price, is_tradable")
+      .eq("id", id)
+      .maybeSingle();
+
+    if (error || !row) {
+      console.error("[edit] select", error);
+      return toast("No se pudo abrir la edición", "danger");
+    }
+
+    editingId = row.id;
+    prefillFormFromBook(row);
+
+    // Cambiar UI del modal
+    const btnSubmit = document.getElementById("btnSubmit");
+    btnSubmit.textContent = "Guardar cambios";
+    setStep(1);
+
+    // Abrir modal (respetando offcanvas)
+    const ocMenu = document.getElementById("ocMenu");
+    if (ocMenu?.classList.contains("show")) {
+      const offc = bootstrap.Offcanvas.getInstance(ocMenu) || new bootstrap.Offcanvas(ocMenu);
+      offc.hide();
+      ocMenu.addEventListener("hidden.bs.offcanvas", () => setTimeout(openModal, 20), { once: true });
+    } else {
+      openModal();
+    }
+  } catch (err) {
+    console.error("[edit] open", err);
+    toast("No se pudo abrir la edición", "danger");
+  }
+});
+
 
   // init
   setStep(1);
