@@ -27,6 +27,9 @@
 --brand-on:  #FFFFFF;   /* texto sobre brand */
 }
 
+/* notificaciones */
+.noti-unread{ background: var(--bs-secondary-bg-subtle); }
+
 
     body {
       background: var(--ml-neutral-100);

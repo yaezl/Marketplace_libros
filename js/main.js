@@ -34,10 +34,28 @@ async function markAllRead() {
   const { data: auth } = await supabase.auth.getUser();
   const uid = auth?.user?.id;
   if (!uid) return;
-  await supabase.from('notifications')
-    .update({ read_at: new Date().toISOString() })
+
+  // 1) Traer los IDs no leídos del usuario
+  const { data: rows, error: selErr } = await supabase
+    .from('notifications')
+    .select('id')
     .is('read_at', null);
+
+  if (selErr || !rows || rows.length === 0) return;
+
+  const ids = rows.map(r => r.id);
+
+  // 2) Marcar por IDs (evita problemas de RLS/filtros)
+  const { error: updErr } = await supabase
+    .from('notifications')
+    .update({ read_at: new Date().toISOString() })
+    .in('id', ids);
+
+  if (updErr) {
+    console.error('[noti] markAllRead', updErr);
+  }
 }
+
 
 async function markOneRead(id) {
   await supabase.from('notifications')
@@ -61,8 +79,8 @@ function renderNotiList(listEl, emptyEl, items) {
     const isUnread = !n.read_at;
 
     return `
-      <a href="#" class="list-group-item list-group-item-action ${isUnread ? 'fw-semibold' : ''}"
-         data-noti="${n.id}" data-book="${p.book_id || ''}">
+      <a href="#" class="list-group-item list-group-item-action ${isUnread ? 'fw-semibold noti-unread' : ''}"
+         data-noti="${n.id}" data-book="${p.book_id || ''}" data-unread="${isUnread ? '1' : '0'}">
         <div class="d-flex justify-content-between">
           <div class="me-2">
             <div>${title}${author}</div>
@@ -101,6 +119,10 @@ async function loadNotiInto(prefix) {
 
       await markOneRead(id);
 
+      const unread = await getUnreadCount();
+      setNotiBadge(unread);
+
+
       if (!error && row && row.status === 'disponible') {
         window.location.href = `/template/libro.html?id=${bookId}`;
       } else {
@@ -110,20 +132,73 @@ async function loadNotiInto(prefix) {
   });
 }
 
-// ganchos de dropdown: cuando se abre, cargo
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
+  // --- Desktop
   const ddDesktop = document.getElementById('btnNotiDesktop');
-  ddDesktop?.addEventListener('show.bs.dropdown', () => loadNotiInto('Desktop'));
+  ddDesktop?.addEventListener('show.bs.dropdown', () => refreshNotiUI('Desktop'));
+
   document.getElementById('notiMarkAll')?.addEventListener('click', async (e) => {
     e.preventDefault();
+
+    // 🔹 UI inmediata (optimista)
+    const list = document.getElementById('notiListDesktop') || document.getElementById('notiListMobile');
+    list?.querySelectorAll('[data-unread="1"]').forEach(el => {
+      el.classList.remove('fw-semibold', 'noti-unread');
+      el.dataset.unread = '0';
+    });
+    setNotiBadge(0);
+
+    // 🔹 Actualización en BD
     await markAllRead();
-    await loadNotiInto('Desktop');
+
+    // 🔹 Refrescar la lista final
+    await refreshNotiUI('Desktop');
   });
 
+  // --- Mobile
   const ddMobile = document.getElementById('btnNotiMobile');
-  ddMobile?.addEventListener('show.bs.dropdown', () => loadNotiInto('Mobile'));
+  ddMobile?.addEventListener('show.bs.dropdown', () => refreshNotiUI('Mobile'));
+
+  // --- Badge inicial
+  const unread = await getUnreadCount();
+  setNotiBadge(unread);
+
+  // --- Otras cargas
+  loadDiscover();
+  loadMyListings();
 });
 
+
+async function getUnreadCount() {
+  const { data, error, count } = await supabase
+    .from('notifications')
+    .select('id', { count: 'exact', head: true })
+    .is('read_at', null);
+  if (error) return 0;
+  return count || 0;
+}
+
+function setNotiBadge(count) {
+  const btns = [document.getElementById('btnNotiDesktop'), document.getElementById('btnNotiMobile')].filter(Boolean);
+  btns.forEach(btn => {
+    btn.classList.add('position-relative');
+    let b = btn.querySelector('.noti-badge');
+    if (!b) {
+      b = document.createElement('span');
+      b.className = 'noti-badge position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger';
+      b.style.fontSize = '10px';
+      btn.appendChild(b);
+    }
+    b.textContent = count > 99 ? '99+' : String(count || '');
+    b.style.display = count ? '' : 'none';
+  });
+}
+
+async function refreshNotiUI(prefix) {
+  await loadNotiInto(prefix);
+  const unread = await getUnreadCount();
+  setNotiBadge(unread);
+}
 
 // ===== Likes (book_likes) =====
 async function getMyLikedSet() {
