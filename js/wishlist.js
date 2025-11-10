@@ -2,7 +2,7 @@
 import { supabase } from '../supabaseClient.js';
 
 /* ===================== DOM refs (con guardias) ===================== */
-const grid  = document.getElementById('grid-quiero-leer');
+const grid = document.getElementById('grid-quiero-leer');
 const empty = document.getElementById('empty-quiero-leer');
 const btnAdd = document.getElementById('btn-add-wishlist');
 
@@ -200,18 +200,47 @@ if (!grid || !btnAdd) {
       });
     });
 
-    // Borrar item
+    // Borrar item ( publicacion desaparece de apoco y figura toast)
     grid.querySelectorAll('[data-del]').forEach(btn => {
       btn.addEventListener('click', async (e) => {
         const id = e.currentTarget.getAttribute('data-del');
         if (!id) return;
-        const ok = confirm('¿Borrar este libro de tu wishlist?');
-        if (!ok) return;
+
+        // UI optimista: marcar la card mientras borra
+        const col = e.currentTarget.closest('.col');
+        col?.classList.add('opacity-50');
+
+        // Borra en Supabase
         const { error } = await supabase.from('wish_wants').delete().eq('id', id);
-        if (error) { console.error(error); return; }
+
+        if (error) {
+          console.error(error);
+          // Revertir estado visual si falla
+          col?.classList.remove('opacity-50');
+          // Mostrar toast de error (opcional)
+          showToast('No pudimos eliminar el libro. Intentalo de nuevo.');
+          return;
+        }
+
+        // ✅ Toast de éxito inmediato
+        showToast('Libro eliminado exitosamente de wishlist');
+
+        // Refrescar grilla
         await loadWishlist();
       });
     });
+
+    // Helper para toasts reutilizable
+    function showToast(message) {
+      const toastEl = document.getElementById('toastWishlistDel');
+      if (!toastEl) return;
+      const body = toastEl.querySelector('.toast-body');
+      if (body) body.textContent = message;
+      const t = bootstrap.Toast.getOrCreateInstance(toastEl);
+      t.show();
+    }
+
+    ;
   }
 
   /* ===================== Boot ===================== */
@@ -233,11 +262,11 @@ if (!grid || !btnAdd) {
       .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'wish_wants' }, loadWishlist)
       .on('postgres_changes', { event: 'DELETE', schema: 'public', table: 'wish_wants' }, loadWishlist)
       .subscribe();
-  } catch (_) {}
+  } catch (_) { }
 }
 
 /* ===================== Me gustaron ===================== */
-const gridLiked  = document.getElementById('grid-me-gustaron');
+const gridLiked = document.getElementById('grid-me-gustaron');
 const emptyLiked = document.getElementById('empty-me-gustaron');
 
 function likedCardTpl(item) {
@@ -264,22 +293,22 @@ async function loadLiked() {
   if (!gridLiked) return;
 
   const { data: { user } } = await supabase.auth.getUser();
-if (!user) {
-  gridLiked.innerHTML = '';
-  emptyLiked?.classList.remove('d-none');
-  return;
-}
+  if (!user) {
+    gridLiked.innerHTML = '';
+    emptyLiked?.classList.remove('d-none');
+    return;
+  }
 
-const { data, error } = await supabase
-  .from('book_likes')
-  .select(`
+  const { data, error } = await supabase
+    .from('book_likes')
+    .select(`
     book:books (
       id, title, author,
       book_images (url, position)
     )
   `)
-  .eq('user_id', user.id)               // 👈 solo mis likes
-  .order('created_at', { ascending: false });
+    .eq('user_id', user.id)               // 👈 solo mis likes
+    .order('created_at', { ascending: false });
 
 
   if (error) { console.error(error); return; }
@@ -287,7 +316,7 @@ const { data, error } = await supabase
   const items = (data || []).map(r => {
     const b = r.book;
     if (!b) return null;
-    const imgs = (b.book_images || []).slice().sort((a,b)=>(a.position??0)-(b.position??0));
+    const imgs = (b.book_images || []).slice().sort((a, b) => (a.position ?? 0) - (b.position ?? 0));
     return { id: b.id, title: b.title, author: b.author, cover: imgs[0]?.url || null };
   }).filter(Boolean);
 

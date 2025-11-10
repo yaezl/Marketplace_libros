@@ -784,7 +784,7 @@ img.solo-logueado:hover {
 }
 
 
-/* ===== Wishlist (scoped) – Tabs con look de botón negro -> amarillo ===== */
+/* ===== Wishlist (scoped)  */
 /* Tabs Wishlist en brand */
 /* Tabs Wishlist - solo el activo pintado */
 #wishlist .nav-pills .nav-link {
@@ -819,6 +819,11 @@ img.solo-logueado:hover {
   right: .5rem;
   z-index: 2;
 }
+#wishlist-tabs {
+  display: flex;
+  gap: 0.5rem;
+}
+
 
 /* Evitar FOUC/flash de login mientras se resuelve la sesión */
 .auth-unknown .solo-publico,
