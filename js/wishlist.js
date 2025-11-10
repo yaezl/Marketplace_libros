@@ -36,7 +36,6 @@ if (!grid || !btnAdd) {
             <div class="mb-3">
               <label class="form-label">Buscar por título o autor</label>
               <input type="text" class="form-control" id="gbooks-q" placeholder="Ej: Cien años de soledad">
-              <div class="form-text">Usamos Google Books para autocompletar.</div>
             </div>
             <div id="gbooks-results" class="list-group"></div>
           </div>

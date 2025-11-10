@@ -58,6 +58,28 @@ function applyDynamicBreadcrumb() {
       crumb.href = "/index.html";
   }
 }
+// --- avatar vendedor desde Storage ---
+const DEFAULT_AVATAR = "/assets/img/bookealogo.png";
+const AVATAR_BUCKET  = "avatars";
+const avatarPath = (uid) => `${uid}/avatar`;
+
+// cache-buster suave para evitar que quede pegada la anterior
+const cacheBust = (url) => `${url}?v=${Date.now()}`;
+
+async function getSellerAvatarUrl(uid) {
+  if (!uid) return DEFAULT_AVATAR;
+  const { data } = supabase.storage.from(AVATAR_BUCKET).getPublicUrl(avatarPath(uid));
+  const url = data?.publicUrl || "";
+  if (!url) return DEFAULT_AVATAR;
+
+  // opcional: verificar que exista el objeto
+  try {
+    const ok = await fetch(cacheBust(url), { method: "HEAD", cache: "no-store" }).then(r => r.ok).catch(() => false);
+    return ok ? cacheBust(url) : DEFAULT_AVATAR;
+  } catch {
+    return DEFAULT_AVATAR;
+  }
+}
 
 
 /* ---------- init (1 sola query con relaciones) ---------- */
@@ -146,11 +168,16 @@ function renderBook(book) {
   });
 
   // vendedor (card)
-  document.getElementById("sellerName").textContent = sellerName;
-  const avatar = seller.avatar_url || "https://placehold.co/112x112?text=User";
-  const imgEl = document.getElementById("sellerAvatar");
-  imgEl.src = avatar;
-  imgEl.alt = sellerName;
+  // vendedor (card)
+document.getElementById("sellerName").textContent = sellerName;
+const imgEl = document.getElementById("sellerAvatar");
+imgEl.alt = sellerName;
+
+// NUEVO: traer avatar desde Storage por seller.id
+getSellerAvatarUrl(seller.id).then((url) => {
+  imgEl.src = url || DEFAULT_AVATAR;
+});
+
 
   // Contactar vendedor → WhatsApp
   document.getElementById("contactBtn").onclick = () => {
