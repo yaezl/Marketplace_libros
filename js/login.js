@@ -30,15 +30,37 @@ function mostrarAlerta(tipo, mensaje) {
 // LOGIN
 formLogin.addEventListener('submit', async (e) => {
   e.preventDefault();
+
   const email = document.getElementById('login-email').value.trim();
   const password = document.getElementById('login-password').value;
 
-  const { error } = await supabase.auth.signInWithPassword({ email, password });
-  if (error) return mostrarAlerta('danger', error.message);
+  try {
+    const { error } = await supabase.auth.signInWithPassword({ email, password });
 
-  mostrarAlerta('success', 'Inicio de sesión exitoso. Redirigiendo...');
-  setTimeout(() => window.location.href = 'index.html', 1000);
+    if (error) {
+      let msg = 'Ocurrió un error al iniciar sesión.';
+
+      // Mensajes en español
+      if (error.message.includes('Invalid login credentials')) {
+        msg = 'Correo o contraseña incorrectos.';
+      } else if (error.message.includes('Email not confirmed')) {
+        msg = 'Tenés que confirmar tu correo antes de ingresar.';
+      } else if (error.message.includes('network')) {
+        msg = 'Error de conexión. Verificá tu internet.';
+      }
+
+      mostrarAlerta('danger', msg);
+      return;
+    }
+
+    mostrarAlerta('success', 'Inicio de sesión exitoso. Redirigiendo...');
+    setTimeout(() => (window.location.href = 'index.html'), 1000);
+  } catch (err) {
+    console.error(err);
+    mostrarAlerta('danger', 'Hubo un error inesperado. Intentá nuevamente.');
+  }
 });
+
 
 // REGISTRO
 formRegister.addEventListener('submit', async (e) => {
