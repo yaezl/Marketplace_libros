@@ -189,7 +189,7 @@ function renderBook(book) {
 
   // estado inicial
   try {
-    const { data, error } = await supabase.from('book_likes').select('book_id').eq('book_id', id).maybeSingle();
+    const { data, error } = await supabase.from('book_likes').select('book_id').eq('book_id', id).eq('user_id', auth.user.id).maybeSingle();
     if (!error && data) btn.innerHTML = '<i class="bi bi-heart-fill text-danger"></i>';
   } catch {}
 
@@ -213,14 +213,20 @@ function renderBook(book) {
     return data?.user?.id || null;
   }
   async function isLiked(id) {
+    const { data: auth } = await supabase.auth.getUser();
+    const uid = auth?.user?.id || null;
+    if (!uid) return false;
+
     const { data, error } = await supabase
       .from('book_likes')
       .select('book_id')
       .eq('book_id', id)
+      .eq('user_id', uid)           // 👈 filtro por usuario
       .maybeSingle();
     if (error && error.code !== 'PGRST116') console.debug('[like] select error', error);
     return !!data;
   }
+
   async function setIcon(liked) {
     btn.innerHTML = liked ? '<i class="bi bi-heart-fill text-danger"></i>' : '<i class="bi bi-heart"></i>';
   }
@@ -261,10 +267,15 @@ function renderBook(book) {
         if (error) throw error;
         await setIcon(true);
       } else {
-        const { error } = await supabase.from('book_likes').delete().eq('book_id', bookId);
+        const { error } = await supabase
+          .from('book_likes')
+          .delete()
+          .eq('book_id', bookId)
+          .eq('user_id', userId);      // 👈 borra solo tu fila
         if (error) throw error;
         await setIcon(false);
       }
+
     } catch (e) {
       console.error('[like] toggle error', e);
       alert('No pudimos actualizar tu “Me gustaron”.');

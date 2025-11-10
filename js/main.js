@@ -163,9 +163,6 @@ document.addEventListener('DOMContentLoaded', async () => {
   const unread = await getUnreadCount();
   setNotiBadge(unread);
 
-  // --- Otras cargas
-  loadDiscover();
-  loadMyListings();
 });
 
 
@@ -208,6 +205,7 @@ async function getMyLikedSet() {
   const { data, error } = await supabase
     .from("book_likes")
     .select("book_id")
+    .eq("user_id", uid)
     .order("created_at", { ascending: false });
   if (error || !data) return new Set();
   return new Set(data.map((r) => r.book_id));
@@ -230,7 +228,8 @@ async function toggleLike(bookId, likedSet, iconEl) {
       const { error } = await supabase
         .from("book_likes")
         .delete()
-        .eq("book_id", bookId);
+        .eq("book_id", bookId)
+        .eq("user_id", uid);
       if (error) throw error;
       likedSet.delete(bookId);
       iconEl.className = "bi bi-heart";

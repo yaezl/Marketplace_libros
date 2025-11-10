@@ -263,23 +263,24 @@ function likedCardTpl(item) {
 async function loadLiked() {
   if (!gridLiked) return;
 
-  const { data: auth } = await supabase.auth.getUser();
-  if (!auth?.user) {
-    gridLiked.innerHTML = '';
-    emptyLiked?.classList.remove('d-none');
-    return;
-  }
+  const { data: { user } } = await supabase.auth.getUser();
+if (!user) {
+  gridLiked.innerHTML = '';
+  emptyLiked?.classList.remove('d-none');
+  return;
+}
 
-  // Traer libros likeados (join por FK book_likes.book_id -> books.id)
-  const { data, error } = await supabase
-    .from('book_likes')
-    .select(`
-      book:books (
-        id, title, author,
-        book_images (url, position)
-      )
-    `)
-    .order('created_at', { ascending: false });
+const { data, error } = await supabase
+  .from('book_likes')
+  .select(`
+    book:books (
+      id, title, author,
+      book_images (url, position)
+    )
+  `)
+  .eq('user_id', user.id)               // 👈 solo mis likes
+  .order('created_at', { ascending: false });
+
 
   if (error) { console.error(error); return; }
 
@@ -303,7 +304,13 @@ async function loadLiked() {
   gridLiked.querySelectorAll('[data-unlike]').forEach(btn => {
     btn.addEventListener('click', async () => {
       const id = btn.getAttribute('data-unlike');
-      const { error } = await supabase.from('book_likes').delete().eq('book_id', id);
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return alert('Necesitás iniciar sesión.');
+      const { error } = await supabase
+        .from('book_likes')
+        .delete()
+        .eq('book_id', id)
+        .eq('user_id', user.id);     // 👈 borra solo tu like
       if (error) { alert('No se pudo quitar.'); return; }
       await loadLiked();
     });
