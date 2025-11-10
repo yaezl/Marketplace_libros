@@ -136,4 +136,22 @@ if ($grid) {
   obs.observe($grid, { childList: true, subtree: true });
 }
 
-$input?.addEventListener("input", debounce((e) => applyFilter(e.target.value || ""), 250));
+// Inputs de búsqueda: desktop + móvil
+const $inputDesktop = document.querySelector("#search-input");
+const $inputMobile  = document.querySelector("#search-input-mobile");
+
+// Función común de filtrado (con debounce)
+const handleSearch = debounce((value) => applyFilter(value || ""), 250);
+
+// Escuchar ambos y sincronizar valores entre sí
+[$inputDesktop, $inputMobile].forEach((inp) => {
+  if (!inp) return;
+  inp.addEventListener("input", (e) => {
+    const val = e.target.value;
+    // sincronizamos ambos campos
+    [$inputDesktop, $inputMobile].forEach((other) => {
+      if (other && other !== inp) other.value = val;
+    });
+    handleSearch(val);
+  });
+});

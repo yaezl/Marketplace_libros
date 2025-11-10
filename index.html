@@ -61,27 +61,16 @@
             </div>
           </div>
         </div>
-
         <!-- PERFIL SECCION -->
         <!-- avatar global -->
         <a href="/template/perfil.html" class="d-inline-block">
           <img data-user-avatar src="/assets/img/bookealogo.png" width="32" height="32"
             class="rounded-circle border solo-logueado" alt="perfil" />
         </a>
-
-
       </div>
     </div>
-    <!-- buscador editar -->
-    <!--   <form class="px-2 pb-2 d-lg-none" role="search">
-      <div class="input-group search-wrap">
-        <span class="input-group-text bg-white border-0">
-          <i class="bi bi-search text-secondary"></i>
-        </span>
-       <div id="search-container"></div> -->
 
-    </div>
-    </form>
+
   </header>
 
   <!-- LAYOUT -->
@@ -157,7 +146,7 @@
       <main class="col-12 col-lg-10 px-3 px-lg-4 py-3">
         <!-- Barra superior (solo desktop): buscador + iconos + perfil -->
         <div class="d-none d-lg-flex align-items-center justify-content-between mb-3">
-          <input id="search-input" type="text" class="form-control border-0"
+          <input id="search-input" type="text" class="form-control border-0 me-3"
             placeholder="Buscar por título, autor o usuario…" autocomplete="off" />
 
 
@@ -192,6 +181,11 @@
           </div>
         </div>
 
+        <!-- Buscador (solo móvil) -->
+        <div class="d-lg-none container px-3 mb-2">
+          <input id="search-input-mobile" type="text" class="form-control border-0"
+            placeholder="Buscar por título, autor o usuario…" autocomplete="off" />
+        </div>
 
         <!-- Publicaciones dinámicas desde Supabase (AGREGADO) -->
         <div class="container my-4">
