@@ -447,6 +447,29 @@ function finalizeMyBookCardCover(bookId, newUrl) {
   const igAddBtn = document.getElementById("igAddBtn");
   const igPickBtn = document.getElementById("igPickBtn");
   const fileInputIG = document.getElementById("bookPhotos");
+const igUploader = document.getElementById("igUploader"); // <div class="ig-uploader" ...>
+
+let igErrorEl = null;
+function showPhotoError(msg) {
+  if (!igErrorEl) {
+    igErrorEl = document.createElement("div");
+    igErrorEl.id = "igError";
+    igErrorEl.setAttribute("role", "alert");
+    igErrorEl.className = "mt-2";
+    igErrorEl.style.background = "var(--brand-100)";      // #FAE1DA
+    igErrorEl.style.border = "1px solid var(--brand-600)"; // #E47154
+    igErrorEl.style.color = "var(--ml-neutral-900)";
+    igErrorEl.style.borderRadius = "10px";
+    igErrorEl.style.padding = "10px 12px";
+    // Insertarlo inmediatamente debajo del uploader (después de las miniaturas)
+    igUploader?.parentNode?.insertBefore(igErrorEl, igUploader.nextSibling);
+  }
+  igErrorEl.textContent = msg;
+  igErrorEl.classList.remove("d-none");
+}
+function clearPhotoError() {
+  if (igErrorEl) igErrorEl.classList.add("d-none");
+}
 
   let igFiles = []; // Array<File>
   let igCurrent = 0; // índice de imagen activa
@@ -545,6 +568,8 @@ function finalizeMyBookCardCover(bookId, newUrl) {
     if (igFiles.length === newOnes.length) igCurrent = 0; // si fueron las primeras
     renderStage();
     renderTray();
+    if (igFiles.length >= MIN_PHOTOS) clearPhotoError();
+
   }
 
   // Handlers de UI
@@ -588,6 +613,7 @@ function finalizeMyBookCardCover(bookId, newUrl) {
   // Inicial
   renderStage();
   renderTray();
+if (igFiles.length >= MIN_PHOTOS) clearPhotoError();
 
   // ===== Conexión con Supabase =====
   const BUCKET_NAME = "bookea-images";
@@ -747,15 +773,17 @@ function finalizeMyBookCardCover(bookId, newUrl) {
     e.preventDefault();
 
     // Mínimo de fotos: 3 al CREAR. En edición no tocamos imágenes.
-  if (!editingId) {
-    if (!Array.isArray(igFiles) || igFiles.length < MIN_PHOTOS) {
-      const faltan = MIN_PHOTOS - (igFiles?.length || 0);
-      toast(`Agregá al menos ${MIN_PHOTOS} fotos (te faltan ${Math.max(faltan,1)}).`, "warning");
-      setStep(3);
-      igStage?.focus();
-      return;
-    }
+ if (!editingId) {
+  if (!Array.isArray(igFiles) || igFiles.length < MIN_PHOTOS) {
+    const faltan = MIN_PHOTOS - (igFiles?.length || 0);
+    setStep(3);
+    showPhotoError(`Agregá al menos ${MIN_PHOTOS} fotos (te faltan ${Math.max(faltan,1)}).`);
+    igUploader?.scrollIntoView({ behavior: "smooth", block: "center" });
+    igStage?.focus();
+    return;
   }
+}
+
 
     const {
       data: { user },

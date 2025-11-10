@@ -402,8 +402,7 @@ async function loadDiscover() {
   const currentUserId = auth?.user?.id || null;
 
   data.forEach((row) => {
-    const isOwner = currentUserId && row.owner === currentUserId;
-    renderBookCard({ book: row, container: cont, isOwner, likedSet });
+     renderBookCard({ book: row, container: cont, isOwner: false, likedSet });
   });
 }
 

@@ -1,17 +1,32 @@
-    :root {
-      --ml-amber-50: #fff7e6;
-      --ml-amber-100: #ffedc2;
-      --ml-amber-300: #ffd469;
-      --ml-amber-400: #ffc538;
-      --ml-amber-500: #ffb800;
-      --ml-neutral-900: #0a0a0a;
-      --ml-neutral-800: #18181b;
-      --ml-neutral-700: #3f3f46;
-      --ml-neutral-600: #52525b;
-      --ml-neutral-200: #e5e7eb;
-      --ml-neutral-100: #f6f6f6;
-      --radius-xl: 1.25rem;
-    }
+:root {
+  /* Paleta Bookea (extraída del logo) */
+  /* Primarios (azules) */
+  --ml-neutral-900: #1C2B39; /* azul muy oscuro – textos principales, FAB */
+  --ml-neutral-800: #24384A; 
+  --ml-neutral-700: #3F5161; /* textos secundarios / iconos */
+  --ml-neutral-600: #6B7C88; /* bordes suaves sobre fondos claros */
+
+  /* Fondos claros */
+  --ml-neutral-200: #E4E7EB; /* borde tarjetas/inputs */
+  --ml-neutral-100: #FAF4E9; /* fondo general (beige del “sol”) */
+
+  /* Acentos (amarillos cálidos del logo) */
+  --ml-amber-50:  #FDF6E7;
+  --ml-amber-100: #F9E7B8;
+  --ml-amber-300: #E9B13F;
+  --ml-amber-400: #F0BC4E;
+  --ml-amber-500: #F6C65B; /* amarillo principal (btn, estados activos) */
+
+  /* Radios */
+  --radius-xl: 1.25rem;
+  /* --- Brand Bookea (ladrillo) --- */
+--brand-500: #ED8A6A;   /* base de botón */
+--brand-600: #E47154;   /* hover */
+--brand-100: #FAE1DA;   /* hover claro / fondos suaves */
+--brand-700: #D65E43;   /* activo / énfasis */
+--brand-on:  #FFFFFF;   /* texto sobre brand */
+}
+
 
     body {
       background: var(--ml-neutral-100);
@@ -373,16 +388,16 @@
       font-weight: 700;
     }
 
-    .wizard-steps li.active {
-      border-color: var(--ml-amber-300);
-      color: #000;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, .04);
-    }
+   .wizard-steps li.active {
+  border-color: var(--brand-100);
+  color: #000;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, .04);
+}
+.wizard-steps li.active::before {
+  background: var(--brand-500);
+  color: var(--brand-on);
+}
 
-    .wizard-steps li.active::before {
-      background: var(--ml-amber-500);
-      color: #1a1a1a;
-    }
 
     /* Autocomplete box */
     .autocomplete-results {
@@ -433,38 +448,58 @@
       background: #fafafa;
     }
 
-    /* Buttons (en tu línea visual) */
-    .btn:hover {
-      --btn-bg: var(--ml-amber-500, #ffb800);
-      --btn-fg: #1a1a1a;
-      border: none;
-      border-radius: 10px;
-      font-weight: 600;
-      background: var(--btn-bg);
-      color: var(--btn-fg);
-    }
+/* === Botón principal (base en brand) === */
+.btn,
+.btn-dark,
+.btn-primary,
+.btn-warning {
+  background: var(--brand-500);
+  color: var(--brand-on);
+  border: 1px solid var(--brand-500);
+  border-radius: 10px;
+  font-weight: 600;
+  transition: background .25s ease, color .25s ease, border-color .25s ease, transform .05s ease;
+}
 
-    .btn:active {
-      transform: translateY(1px);
-    }
+/* Hover/active */
+.btn:hover,
+.btn:active {
+  background: var(--brand-600);
+  border-color: var(--brand-600);
+  color: var(--brand-on);
+}
 
-    .btn-secondary {
-      padding: 10px 16px;
-      border-radius: 10px;
-      border: 1px solid var(--ml-neutral-200);
-      background: #ffffff;
-      color: white;
-    }
+/* Focus accesible */
+.btn:focus,
+.btn:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 .2rem rgba(237,138,106,.35); /* #ED8A6A */
+}
 
-    /* FAB ajuste */
-    .fab {
-      background: var(--ml-neutral-900);
-      color: #fff;
-    }
+/* Botones claros / outline */
+.btn-light,
+.btn-outline-secondary,
+.btn-outline-light {
+  background: #fff;
+  color: var(--ml-neutral-900);
+  border: 1px solid var(--ml-neutral-200);
+}
+.btn-light:hover,
+.btn-outline-secondary:hover,
+.btn-outline-light:hover {
+  background: var(--brand-100);
+  border-color: var(--brand-600);
+  color: var(--ml-neutral-900);
+}
 
-    .fab:hover {
-      background: #000;
-    }
+/* FAB usa brand también */
+.fab {
+  background: var(--brand-500);
+  color: var(--brand-on);
+  border: 1px solid var(--brand-500);
+}
+.fab:hover { background: var(--brand-600); border-color: var(--brand-600); }
+
 
     body.offcanvas-open .fab {
       display: none;
@@ -540,10 +575,11 @@
     }
 
     .ig-stage.dragover {
-      outline: 2px dashed var(--ml-amber-400);
-      outline-offset: -4px;
-      background: #121420;
-    }
+  outline: 2px dashed var(--brand-600);
+  outline-offset: -4px;
+  background: #fff;
+}
+
 
     /* Miniaturas más pequeñas */
     .ig-tray {
@@ -691,13 +727,15 @@ img.solo-logueado {
   transition: all 0.25s ease;
 }
 
+/* Hover del avatar/logo con color de marca */
 a[href*="perfil.html"] img:hover,
 img.solo-logueado:hover {
-  background-color: #fff8e1; /* amarillo claro */
-  box-shadow: 0 0 0 3px #ffe082 inset;
+  background-color: var(--brand-100);
+  box-shadow: 0 0 0 3px var(--brand-500) inset;
   transform: scale(1.05);
   cursor: pointer;
 }
+
 /* Avatar del perfil: mismo tamaño visual que la campanita */
 a[href*="perfil.html"] img,
 img.solo-logueado {
@@ -712,45 +750,61 @@ img.solo-logueado {
 /* Hover */
 a[href*="perfil.html"] img:hover,
 img.solo-logueado:hover {
-  background-color: #fff8e1; /* amarillo claro */
-  box-shadow: 0 0 0 3px #ffe082 inset;
+  background-color: var(--brand-100);  /* amarillo claro */
+  box-shadow: 0 0 0 3px var(--brand-500) inset;
   transform: scale(1.05);
   cursor: pointer;
 }
 
 /* Toast de confirmación */
 #bookea-toast {
-  background-color: #fbbf24 !important;  /* Amarillo Bookea */
-  color: #212529 !important;
+  background-color: var(--brand-500) !important;
+  color: var(--brand-on) !important;
   border-radius: 12px;
   box-shadow: 0 4px 10px rgba(0,0,0,0.15);
 }
+
 #bookea-toast .btn-close-white {
   filter: invert(0) !important;
 }
+/* === Toasts Bookea unificados al brand === */
+.toast,
+.toast.show {
+  background-color: var(--brand-500) !important;
+  color: var(--brand-on) !important;
+  border-radius: 12px;
+  border: 1px solid var(--brand-600);
+  box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+}
+.toast .btn-close {
+  filter: invert(1) brightness(1.1);
+}
+
 
 /* ===== Wishlist (scoped) – Tabs con look de botón negro -> amarillo ===== */
-#wishlist .nav-pills .nav-link{
+/* Tabs Wishlist en brand */
+/* Tabs Wishlist - solo el activo pintado */
+#wishlist .nav-pills .nav-link {
   border-radius: 999px;
-  background: var(--ml-neutral-900); /* negro del sistema */
-  color: #fff;
-  border: 1px solid transparent;
+  background: #fff;
+  color: var(--ml-neutral-900);
+  border: 1.5px solid var(--brand-500);
   padding: .45rem .9rem;
+  font-weight: 600;
   transition: all .15s ease-in-out;
 }
-#wishlist .nav-pills .nav-link:hover{
-  background-color: #f0de8d;     /* amarillo Bookea */
-  color: #1a1a1a;
+#wishlist .nav-pills .nav-link:hover {
+  background: var(--brand-100);
+  color: var(--ml-neutral-900);
+  border-color: var(--brand-600);
 }
-#wishlist .nav-pills .nav-link:focus{
-  box-shadow: 0 0 0 .2rem rgba(218, 218, 221, 0.35);
-}
-#wishlist .nav-pills .nav-link.active{
-  background: var(--ml-amber-500);
-  color: #1a1a1a;
-  border-color: var(--ml-amber-300);
+#wishlist .nav-pills .nav-link.active {
+  background: var(--brand-500);
+  color: var(--brand-on);
+  border-color: var(--brand-500);
   box-shadow: 0 2px 8px rgba(0,0,0,.06);
 }
+
 /* Wishlist: acciones (⋮) dentro de cada card */
 #wishlist .book-card{ 
   position: relative;           /* para que el dropdown se posicione dentro */
@@ -776,4 +830,14 @@ html:not(.auth-unknown) .solo-logueado {
   opacity: 1;
   pointer-events: auto;
   transition: opacity .12s ease;
+}
+/* Selección de texto */
+::selection { background: var(--brand-600); color: var(--brand-on); }
+::-moz-selection { background: var(--brand-600); color: var(--brand-on); }
+
+/* Inputs / selects focus */
+.form-control:focus,
+.form-select:focus {
+  border-color: var(--brand-600);
+  box-shadow: 0 0 0 .2rem rgba(237,138,106,.25);
 }
