@@ -447,7 +447,16 @@ function finalizeMyBookCardCover(bookId, newUrl) {
   const igAddBtn = document.getElementById("igAddBtn");
   const igPickBtn = document.getElementById("igPickBtn");
   const fileInputIG = document.getElementById("bookPhotos");
-const igUploader = document.getElementById("igUploader"); // <div class="ig-uploader" ...>
+  const igUploader = document.getElementById("igUploader"); // <div class="ig-uploader" ...>
+  // === Estado del uploader / edición (una sola vez) ===
+  let igFiles = [];          // matriz con {kind:'new'|'existing', ...}
+  let igCurrent = 0;
+  let editingId = null;
+
+  const MIN_PHOTOS = 3;
+  const countKept = () =>
+    igFiles.filter(it => !(it.kind === 'existing' && it.toDelete)).length;
+
 
 let igErrorEl = null;
 function showPhotoError(msg) {
@@ -471,106 +480,120 @@ function clearPhotoError() {
   if (igErrorEl) igErrorEl.classList.add("d-none");
 }
 
-  let igFiles = []; // Array<File>
-  let igCurrent = 0; // índice de imagen activa
-  // === edición + mínimo de fotos ===
-  let editingId = null;
-  const MIN_PHOTOS = 3;
+// Helpers (uploader)
+const isImage = (f) => f && f.type && f.type.startsWith("image/");
 
-  // Helpers (uploader)
-  const isImage = (f) => f && f.type && f.type.startsWith("image/");
-  const readAsDataURL = (file) =>
-    new Promise((res, rej) => {
-      const r = new FileReader();
-      r.onload = () => res(r.result);
-      r.onerror = rej;
-      r.readAsDataURL(file);
-    });
+const readAsDataURL = (file) =>
+  new Promise((res, rej) => {
+    const r = new FileReader();
+    r.onload = () => res(r.result);
+    r.onerror = rej;
+    r.readAsDataURL(file);
+  });
 
-  // Render principal
-  async function renderStage() {
-    if (igFiles.length === 0) {
-      igEmpty.classList.remove("d-none");
-      igMain.classList.add("d-none");
-      igMain.src = "";
-      return;
-    }
-    igEmpty.classList.add("d-none");
-    igMain.classList.remove("d-none");
-    const file = igFiles[igCurrent];
-    igMain.src = await readAsDataURL(file);
+// Devuelve la imagen a mostrar (dataURL si es File, o la URL si es existente)
+async function getPreview(it) {
+  if (it.file) return await readAsDataURL(it.file);
+  return it.preview || it.url || "";
+}
+
+// Render principal
+async function renderStage() {
+  if (!igFiles.length) {
+    igEmpty.classList.remove("d-none");
+    igMain.classList.add("d-none");
+    igMain.src = "";
+    return;
   }
+  igEmpty.classList.add("d-none");
+  igMain.classList.remove("d-none");
+  const it = igFiles[igCurrent];
+  igMain.src = await getPreview(it);
+}
 
-  // Render miniaturas + drag & drop reordenable
-  async function renderTray() {
-    igTray.innerHTML = "";
-    igFiles.forEach(async (file, idx) => {
-      const url = await readAsDataURL(file);
-      const item = document.createElement("div");
-      item.className = "ig-thumb" + (idx === igCurrent ? " active" : "");
-      item.draggable = true;
-      item.dataset.index = String(idx);
-      item.innerHTML = `
+// Render miniaturas + drag & drop reordenable
+async function renderTray() {
+  igTray.innerHTML = "";
+  for (let idx = 0; idx < igFiles.length; idx++) {
+    const it = igFiles[idx];
+    const url = await getPreview(it);
+    const item = document.createElement("div");
+    item.className = "ig-thumb" + (idx === igCurrent ? " active" : "") + (it.toDelete ? " opacity-50" : "");
+    item.draggable = true;
+    item.dataset.index = String(idx);
+    item.innerHTML = `
       <img src="${url}" alt="miniatura ${idx + 1}" />
       <button type="button" class="ig-del" aria-label="Eliminar">&times;</button>
     `;
 
-      // seleccionar
-      item.addEventListener("click", (e) => {
-        if (e.target.closest(".ig-del")) return;
-        igCurrent = idx;
-        renderStage();
-        renderTray();
-      });
-
-      // eliminar
-      item.querySelector(".ig-del").addEventListener("click", (e) => {
-        e.stopPropagation();
-        igFiles.splice(idx, 1);
-        if (igCurrent >= igFiles.length)
-          igCurrent = Math.max(0, igFiles.length - 1);
-        renderStage();
-        renderTray();
-      });
-
-      // drag & drop reorden
-      item.addEventListener("dragstart", (e) => {
-        e.dataTransfer.setData("text/plain", String(idx));
-        item.style.opacity = 0.5;
-      });
-      item.addEventListener("dragend", () => {
-        item.style.opacity = 1;
-      });
-      item.addEventListener("dragover", (e) => e.preventDefault());
-      item.addEventListener("drop", (e) => {
-        e.preventDefault();
-        const from = Number(e.dataTransfer.getData("text/plain"));
-        const to = idx;
-        if (Number.isNaN(from)) return;
-        const [moved] = igFiles.splice(from, 1);
-        igFiles.splice(to, 0, moved);
-        if (igCurrent === from) igCurrent = to;
-        else if (from < igCurrent && to >= igCurrent) igCurrent--;
-        else if (from > igCurrent && to <= igCurrent) igCurrent++;
-        renderTray();
-        renderStage();
-      });
-
-      igTray.appendChild(item);
+    // seleccionar
+    item.addEventListener("click", (e) => {
+      if (e.target.closest(".ig-del")) return;
+      igCurrent = idx;
+      renderStage();
+      renderTray();
     });
-  }
 
-  // Agregar archivos (desde input o drop)
-  function addFiles(files) {
-    const newOnes = Array.from(files).filter(isImage);
-    if (!newOnes.length) return;
-    igFiles.push(...newOnes);
-    if (igFiles.length === newOnes.length) igCurrent = 0; // si fueron las primeras
-    renderStage();
-    renderTray();
-    if (igFiles.length >= MIN_PHOTOS) clearPhotoError();
+    // eliminar / marcar para borrar
+    item.querySelector(".ig-del").addEventListener("click", (e) => {
+      e.stopPropagation();
+      const current = igFiles[idx];
+      if (current.kind === "existing") {
+        current.toDelete = !current.toDelete; // toggle
+      } else {
+        igFiles.splice(idx, 1);
+        if (igCurrent >= igFiles.length) igCurrent = Math.max(0, igFiles.length - 1);
+      }
+      // reindex positions visuales
+      igFiles.forEach((f, i) => (f.position = i + 1));
+      renderStage();
+      renderTray();
+    });
 
+    // drag & drop reorden
+    item.addEventListener("dragstart", (e) => {
+      e.dataTransfer.setData("text/plain", String(idx));
+      item.style.opacity = 0.5;
+    });
+    item.addEventListener("dragend", () => (item.style.opacity = 1));
+    item.addEventListener("dragover", (e) => e.preventDefault());
+    item.addEventListener("drop", (e) => {
+      e.preventDefault();
+      const from = Number(e.dataTransfer.getData("text/plain"));
+      const to = idx;
+      if (Number.isNaN(from)) return;
+      const [moved] = igFiles.splice(from, 1);
+      igFiles.splice(to, 0, moved);
+      if (igCurrent === from) igCurrent = to;
+      else if (from < igCurrent && to >= igCurrent) igCurrent--;
+      else if (from > igCurrent && to <= igCurrent) igCurrent++;
+      igFiles.forEach((f, i) => (f.position = i + 1));
+      renderTray();
+      renderStage();
+    });
+
+    igTray.appendChild(item);
   }
+}
+
+// Agregar archivos (desde input o drop) como 'new'
+function addFiles(files) {
+  const newOnes = Array.from(files).filter(isImage);
+  if (!newOnes.length) return;
+  const mapped = newOnes.map((file, i) => ({
+    kind: "new",
+    file,
+    url: "",
+    preview: URL.createObjectURL(file),
+    position: igFiles.length + i + 1,
+  }));
+  igFiles.push(...mapped);
+  if (igFiles.length === mapped.length) igCurrent = 0; // si fueron las primeras
+  renderStage();
+  renderTray();
+  if (countKept() >= MIN_PHOTOS) clearPhotoError();
+}
+
 
   // Handlers de UI
   igAddBtn.addEventListener("click", () => fileInputIG.click());
@@ -773,16 +796,17 @@ if (igFiles.length >= MIN_PHOTOS) clearPhotoError();
     e.preventDefault();
 
     // Mínimo de fotos: 3 al CREAR. En edición no tocamos imágenes.
- if (!editingId) {
-  if (!Array.isArray(igFiles) || igFiles.length < MIN_PHOTOS) {
-    const faltan = MIN_PHOTOS - (igFiles?.length || 0);
-    setStep(3);
-    showPhotoError(`Agregá al menos ${MIN_PHOTOS} fotos (te faltan ${Math.max(faltan,1)}).`);
-    igUploader?.scrollIntoView({ behavior: "smooth", block: "center" });
-    igStage?.focus();
-    return;
-  }
-}
+    // Validación mínima de fotos (aplica a crear y editar)
+    const kept = countKept();
+    if (kept < MIN_PHOTOS) {
+      const faltan = MIN_PHOTOS - kept;
+      setStep(3);
+      showPhotoError(`Agregá al menos ${MIN_PHOTOS} fotos (te faltan ${faltan}).`);
+      igUploader?.scrollIntoView({ behavior: "smooth", block: "center" });
+      igStage?.focus();
+      return;
+    }
+
 
 
     const {
@@ -841,6 +865,67 @@ if (igFiles.length >= MIN_PHOTOS) clearPhotoError();
 
         bookId = up.id;
 
+        // === IMÁGENES (edición) ===
+
+        // 0) userId para subir nuevas
+        const userId = user.id;
+
+        // 1) Borrar las existentes marcadas
+        const toDeleteIds = igFiles.filter(it => it.kind === 'existing' && it.toDelete).map(it => it.id);
+        if (toDeleteIds.length) {
+          const { error: delErr } = await supabase
+            .from('book_images')
+            .delete()
+            .in('id', toDeleteIds);
+          if (delErr) console.error('[images/delete]', delErr);
+        }
+
+        // 2) Calcular orden final (solo las que quedan)
+        const keptAfter = igFiles.filter(it => !(it.kind === 'existing' && it.toDelete));
+
+        // 3) Recorremos en orden y:
+        //   - si es 'new' → subir + insertar
+        //   - si es 'existing' → actualizar posición si cambió
+        for (let i = 0; i < keptAfter.length; i++) {
+          const it = keptAfter[i];
+          const pos = i + 1;
+
+          if (it.kind === 'new' && it.file) {
+            try {
+              const up = await uploadSingleImage(userId, bookId, it.file, pos);
+              const { data: imgRow, error: insErr } = await supabase
+                .from('book_images')
+                .insert({ book_id: bookId, url: up.url, position: pos })
+                .select('id, url')
+                .single();
+              if (!insErr) {
+                // convertir el item 'new' a 'existing'
+                it.kind = 'existing';
+                it.id = imgRow.id;
+                it.url = imgRow.url;
+                it.preview = imgRow.url;
+                delete it.file;
+              }
+            } catch (e) {
+              console.error('[images/upload+insert]', e);
+              toast('No se pudieron subir algunas imágenes', 'warning');
+            }
+          } else if (it.kind === 'existing') {
+            // actualizar posición si cambió
+            if (it.position !== pos) {
+              await supabase.from('book_images').update({ position: pos }).eq('id', it.id);
+              it.position = pos;
+            }
+          }
+        }
+
+        // 4) Portada = primera imagen que quedó
+        const first = keptAfter[0];
+        if (first?.url) {
+          await supabase.from('books').update({ cover_url: first.url }).eq('id', bookId);
+        }
+
+
         // refrescar card en “Mis publicaciones” si está en el DOM
         const col = document.querySelector(`.col[data-book-id="${bookId}"]`);
         if (col) {
@@ -887,7 +972,11 @@ if (igFiles.length >= MIN_PHOTOS) clearPhotoError();
       });
 
       // 3) Subir imágenes en paralelo + guardar en book_images
-      const uploaded = await uploadBookImages(user.id, bookId, igFiles);
+      const uploaded = await uploadBookImages(
+        user.id,
+        bookId,
+        igFiles.filter(it => it.kind === 'new').map(it => it.file)
+      );
       if (uploaded.length) {
         const rows = uploaded.map((u) => ({
           book_id: bookId,
@@ -901,6 +990,18 @@ if (igFiles.length >= MIN_PHOTOS) clearPhotoError();
         // actualizar portada y sacar badge
         finalizeMyBookCardCover(bookId, uploaded[0].url);
       }
+
+      async function uploadSingleImage(userId, bookId, file, position) {
+        const ext = (file.type.split("/")[1] || "jpg").toLowerCase();
+        const path = `${userId}/${bookId}/${Date.now()}_${position}.${ext}`;
+        const { error: upErr } = await supabase.storage
+          .from(BUCKET_NAME)
+          .upload(path, file, { upsert: false });
+        if (upErr) throw upErr;
+        const { data: pub } = supabase.storage.from(BUCKET_NAME).getPublicUrl(path);
+        return { url: pub.publicUrl, position };
+      }
+
 
       toast("¡Libro publicado exitosamente!", "success");
 
@@ -988,6 +1089,34 @@ document.addEventListener('bookea:edit', async (ev) => {
 
     editingId = row.id;
     prefillFormFromBook(row);
+
+    // Traer imágenes existentes y precargar el uploader
+const { data: imgs, error: imgErr } = await supabase
+  .from("book_images")
+  .select("id, url, position")
+  .eq("book_id", row.id)
+  .order("position");
+
+if (imgErr) {
+  console.error("[edit] images", imgErr);
+  toast("No se pudieron cargar las imágenes", "warning");
+} else {
+  igFiles = (imgs || []).map((it) => ({
+    kind: "existing",
+    id: it.id,
+    book_id: row.id,
+    file: null,
+    url: it.url,
+    preview: it.url,
+    position: it.position,
+    toDelete: false,
+  }));
+  igCurrent = 0;
+  await renderStage();
+  await renderTray();
+  setStep(3); // te llevo directo a Fotos para que veas lo que hay
+}
+
 
     // Cambiar UI del modal
     const btnSubmit = document.getElementById("btnSubmit");
