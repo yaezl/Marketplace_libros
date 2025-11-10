@@ -7,7 +7,7 @@ const apellido = document.getElementById("pf-apellido");
 const phone = document.getElementById("pf-phone");
 const residence = document.getElementById("pf-residence");
 const email = document.getElementById("pf-email");
-const verifiedBadge = document.getElementById("pf-verified-badge"); 
+const verifiedBadge = document.getElementById("pf-verified-badge");
 const btnSave = document.getElementById("pf-save");
 
 /* ---------- Cargar perfil ---------- */
@@ -100,8 +100,8 @@ function showToast(message, isError = false) {
   }
 }
 // --- AVATAR: referencias DOM ---
-const avatarImg    = document.getElementById("pf-avatar");
-const avatarInput  = document.getElementById("pf-avatar-file");
+const avatarImg = document.getElementById("pf-avatar");
+const avatarInput = document.getElementById("pf-avatar-file");
 const avatarRemove = document.getElementById("pf-avatar-remove");
 
 const DEFAULT_AVATAR = "/assets/img/bookealogo.png";
@@ -118,6 +118,7 @@ async function loadAvatar(uid) {
 
     if (!url) {
       avatarImg.src = DEFAULT_AVATAR;
+      localStorage.setItem("avatarIsDefault", "1");
       return;
     }
 
@@ -127,6 +128,7 @@ async function loadAvatar(uid) {
       .catch(() => false);
 
     avatarImg.src = exists ? url : DEFAULT_AVATAR;
+    localStorage.setItem("avatarIsDefault", exists ? "0" : "1");
   } catch {
     avatarImg.src = DEFAULT_AVATAR;
   }
@@ -165,8 +167,19 @@ avatarInput?.addEventListener("change", async (e) => {
 
   const { data } = supabase.storage.from(BUCKET).getPublicUrl(path);
   avatarImg.src = `${data.publicUrl}?t=${Date.now()}`;
-  showToast("Foto actualizada ");
-  avatarInput.value = "";
+  localStorage.setItem("avatarVersion", String(Date.now())); // fuerza actualización global
+  localStorage - setItem("avatarIsDefault", "0");
+
+  // 2) Pintar INMEDIATO en header/sidebar (sin esperar nada)
+  const newUrl = `${data.publicUrl}?t=${Date.now()}`;
+  document.querySelectorAll('img[data-user-avatar]').forEach(img => { img.src = `${data.publicUrl}?t=${Date.now()}` });
+
+  // 4) Toast compatible (usa el que tengas disponible)
+  if (typeof toast === 'function') {
+    toast("Foto actualizada correctamente", "success");
+  } else if (typeof showToast === 'function') {
+    showToast("Foto actualizada correctamente", "success");
+  }
 });
 
 // Quitar foto
@@ -182,7 +195,18 @@ avatarRemove?.addEventListener("click", async () => {
   }
 
   avatarImg.src = DEFAULT_AVATAR;
-  showToast("Foto quitada ");
+  localStorage.setItem("avatarVersion", String(Date.now())); // fuerza volver al logo
+  localStorage.setItem("avatarIsDefault", "1");
+  // pintar INMEDIATO en header/sidebar
+  document.querySelectorAll('img[data-user-avatar]').forEach(img => { img.src = DEFAULT_AVATAR; });
+
+  if (window.paintGlobalAvatar) paintGlobalAvatar(); // refresca al instante
+
+  if (typeof toast === 'function') {
+    toast("La foto se quitó correctamente", "success");
+  } else if (typeof showToast === 'function') {
+    showToast("La foto se quitó correctamente", "success");
+  }
 });
 
 /* ---------- init ---------- */
