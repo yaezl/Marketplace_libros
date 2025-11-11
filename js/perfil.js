@@ -168,7 +168,7 @@ avatarInput?.addEventListener("change", async (e) => {
   const { data } = supabase.storage.from(BUCKET).getPublicUrl(path);
   avatarImg.src = `${data.publicUrl}?t=${Date.now()}`;
   localStorage.setItem("avatarVersion", String(Date.now())); // fuerza actualización global
-  localStorage - setItem("avatarIsDefault", "0");
+  localStorage.setItem("avatarIsDefault", "0");
 
   // 2) Pintar INMEDIATO en header/sidebar (sin esperar nada)
   const newUrl = `${data.publicUrl}?t=${Date.now()}`;

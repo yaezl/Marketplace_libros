@@ -315,11 +315,14 @@ function toast(message, variant = "success") {
 }
 
 // card
-function renderBookCard({ book, container, isOwner, likedSet }) {
+function renderBookCard({ book, container, isOwner, likedSet, currentUserId }) {
+  const isMineButInDiscover = !!currentUserId && book.owner === currentUserId;
+  const showLike = !isOwner && !isMineButInDiscover;
+
   const col = document.createElement("div");
   col.className = "col";
   col.dataset.bookId = String(book.id);
-  if (book.status) col.dataset.status = book.status; // para el toggle
+  if (book.status) col.dataset.status = book.status;
 
   const cover = book.cover_url || coverFromImages(book);
   const publisher =
@@ -327,18 +330,16 @@ function renderBookCard({ book, container, isOwner, likedSet }) {
       ? `${book.profiles?.nombre || ""} ${book.profiles?.apellido || ""}`.trim()
       : book.publisher) || "Usuario";
 
-  const isLiked = !isOwner && likedSet?.has?.(book.id);
+  const isLiked = showLike && likedSet?.has?.(book.id);
 
   col.innerHTML = `
   <div class="card h-100 shadow-sm border-0 rounded-3 position-relative">
     <div class="position-relative">
       <div class="ratio ratio-3x4">
-        <img src="${cover}" alt="${book.title
-    }" class="w-100 h-100 object-fit-cover">
+        <img src="${cover}" alt="${book.title}" class="w-100 h-100 object-fit-cover">
       </div>
 
-      ${isOwner
-      ? `
+      ${isOwner ? `
       <div class="position-absolute top-0 end-0 p-1">
         <div class="dropdown">
           <button class="btn btn-light btn-sm rounded-circle border-0" data-bs-toggle="dropdown" aria-expanded="false">
@@ -346,63 +347,45 @@ function renderBookCard({ book, container, isOwner, likedSet }) {
           </button>
           <ul class="dropdown-menu dropdown-menu-end">
             <li>
-              <a class="dropdown-item" href="#" data-action="edit" data-id="${book.id
-      }">
+              <a class="dropdown-item" href="#" data-action="edit" data-id="${book.id}">
                 <i class="bi bi-pencil-square me-2"></i>Editar
               </a>
             </li>
             <li>
-              <a class="dropdown-item" href="#" data-action="toggle" data-id="${book.id
-      }">
-                <i class="bi bi-eye-slash me-2"></i><span data-vis-label>${(book.status || "disponible") === "vendido"
-        ? "Hacer pública"
-        : "Ocultar (privado)"
-      }</span>
+              <a class="dropdown-item" href="#" data-action="toggle" data-id="${book.id}">
+                <i class="bi bi-eye-slash me-2"></i><span data-vis-label>${(book.status || "disponible") === "vendido" ? "Hacer pública" : "Ocultar (privado)"}</span>
               </a>
             </li>
             <li><hr class="dropdown-divider"></li>
             <li>
-              <a class="dropdown-item text-danger" href="#" data-action="delete" data-id="${book.id
-      }">
+              <a class="dropdown-item text-danger" href="#" data-action="delete" data-id="${book.id}">
                 <i class="bi bi-trash3 me-2"></i>Eliminar
               </a>
             </li>
           </ul>
         </div>
-      </div>`
-      : ``
-    }
+      </div>` : ``}
     </div>
 
     <div class="card-body p-2">
-      <div class="fw-semibold text-truncate" title="${book.title}">${book.title
-    }</div>
+      <div class="fw-semibold text-truncate" title="${book.title}">${book.title}</div>
       <div class="small text-secondary text-truncate">${book.author ?? ""}</div>
-      <div class="small text-muted">Publicado por <span class="fw-medium">${isOwner ? "Vos" : publisher
-    }</span></div>
+      <div class="small text-muted">Publicado por <span class="fw-medium">${isOwner ? "Vos" : publisher}</span></div>
 
-      <div class="mt-2"><span class="badge text-bg-light">${humanize(
-      book.condition
-    )}</span></div>
+      <div class="mt-2"><span class="badge text-bg-light">${humanize(book.condition)}</span></div>
       <div class="fw-semibold mt-2">${moneyAR(book.price)}</div>
 
       <div class="d-flex gap-2 mt-2">
-        ${!isOwner
-      ? `
-          <button class="btn btn-sm btn-outline-secondary" title="Guardar en wishlist" data-like="${book.id
-      }">
-            <i class="bi ${isLiked ? "bi-heart-fill text-danger" : "bi-heart"
-      }"></i>
-          </button>`
-      : ``
-    }
-        <a class="btn btn-sm btn-outline-primary" href="/template/libro.html?id=${book.id
-    }">Ver más</a>
+        ${showLike ? `
+          <button class="btn btn-sm btn-outline-secondary" title="Guardar en wishlist" data-like="${book.id}">
+            <i class="bi ${isLiked ? "bi-heart-fill text-danger" : "bi-heart"}"></i>
+          </button>` : ``}
+        <a class="btn btn-sm btn-outline-primary" href="/template/libro.html?id=${book.id}">Ver más</a>
       </div>
     </div>
   </div>`;
 
-  // like toggle (para cards de otros)
+  // like toggle (solo si existe el botón)
   const likeBtn = col.querySelector("[data-like]");
   if (likeBtn) {
     likeBtn.addEventListener("click", async () => {
@@ -412,7 +395,7 @@ function renderBookCard({ book, container, isOwner, likedSet }) {
     });
   }
 
-  // owner actions (⋯)
+  // acciones del dueño (⋯)
   col.querySelectorAll("[data-action]").forEach((a) => {
     a.addEventListener("click", async (ev) => {
       ev.preventDefault();
@@ -444,13 +427,9 @@ function renderBookCard({ book, container, isOwner, likedSet }) {
 
         col.dataset.status = next;
 
-        // actualizar label del menú
         const lbl = col.querySelector("[data-vis-label]");
-        if (lbl)
-          lbl.textContent =
-            next === "vendido" ? "Hacer pública" : "Ocultar (privado)";
+        if (lbl) lbl.textContent = next === "vendido" ? "Hacer pública" : "Ocultar (privado)";
 
-        // Si estoy en Descubre (grid #libros-lista) y lo oculto, quito la card sin recargar
         const inDiscover = !!col.closest("#libros-lista");
         if (inDiscover && next === "vendido") {
           col.remove();
@@ -458,11 +437,7 @@ function renderBookCard({ book, container, isOwner, likedSet }) {
           return;
         }
 
-        // Si estoy en "Mis publicaciones", dejo la card y muestro toast
-        toast(
-          next === "vendido" ? "Publicación ocultada" : "Publicación publicada",
-          "success"
-        );
+        toast(next === "vendido" ? "Publicación ocultada" : "Publicación publicada", "success");
         return;
       }
 
@@ -477,6 +452,7 @@ function renderBookCard({ book, container, isOwner, likedSet }) {
 
   container.appendChild(col);
 }
+
 
 /* --------- Descubre: todos --------- */
 async function loadDiscover() {
@@ -512,7 +488,7 @@ async function loadDiscover() {
   const currentUserId = auth?.user?.id || null;
 
   data.forEach((row) => {
-    renderBookCard({ book: row, container: cont, isOwner: false, likedSet });
+    renderBookCard({ book: row, container: cont, isOwner: false, likedSet, currentUserId });
   });
 }
 

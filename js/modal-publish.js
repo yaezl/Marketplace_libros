@@ -747,7 +747,7 @@ if (igFiles.length >= MIN_PHOTOS) clearPhotoError();
 
       <div class="card-body p-2">
         <div class="fw-semibold text-truncate" title="${title}">${title}</div>
-        <div class="small text-secondary">por ${publisher || "Vos"}</div>
+        <div class="small text-muted">Publicado por <span class="fw-medium">Vos</span></div>
         <div class="mt-2"><span class="badge text-bg-light">${humanize(
           condition
         )}</span></div>
