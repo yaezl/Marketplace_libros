@@ -83,26 +83,40 @@ async function markAllRead() {
   const uid = auth?.user?.id;
   if (!uid) return;
 
-  // 1) Traer los IDs no leídos del usuario
+  // Traer ids de no leídas del usuario
   const { data: rows, error: selErr } = await supabase
     .from('notifications')
     .select('id')
+    .eq('user_id', uid)
     .is('read_at', null);
 
-  if (selErr || !rows || rows.length === 0) return;
+  if (selErr || !rows?.length) return;
 
   const ids = rows.map(r => r.id);
 
-  // 2) Marcar por IDs (evita problemas de RLS/filtros)
+  // Marcar por ids (pasa RLS con la policy de arriba)
   const { error: updErr } = await supabase
     .from('notifications')
     .update({ read_at: new Date().toISOString() })
     .in('id', ids);
 
-  if (updErr) {
-    console.error('[noti] markAllRead', updErr);
-  }
+  if (updErr) console.error('[noti] markAllRead', updErr);
 }
+
+async function getUnreadCount() {
+  const { data: auth } = await supabase.auth.getUser();
+  const uid = auth?.user?.id;
+  if (!uid) return 0;
+
+  const { count, error } = await supabase
+    .from('notifications')
+    .select('id', { count: 'exact', head: true })
+    .eq('user_id', uid)
+    .is('read_at', null);
+
+  return error ? 0 : (count || 0);
+}
+
 
 
 async function markOneRead(id) {
@@ -181,47 +195,43 @@ async function loadNotiInto(prefix) {
 }
 
 document.addEventListener('DOMContentLoaded', async () => {
-  // --- Desktop
-  const ddDesktop = document.getElementById('btnNotiDesktop');
-  ddDesktop?.addEventListener('show.bs.dropdown', () => refreshNotiUI('Desktop'));
+  // abrir dropdowns refresca lista y badge
+  document.getElementById('btnNotiDesktop')
+    ?.addEventListener('show.bs.dropdown', () => refreshNotiUI('Desktop'));
+  document.getElementById('btnNotiMobile')
+    ?.addEventListener('show.bs.dropdown', () => refreshNotiUI('Mobile'));
 
-  document.getElementById('notiMarkAll')?.addEventListener('click', async (e) => {
+  // Marcar todas leídas (cubre varios ids/clases)
+  const handleMarkAll = async (e) => {
     e.preventDefault();
 
-    // 🔹 UI inmediata (optimista)
-    const list = document.getElementById('notiListDesktop') || document.getElementById('notiListMobile');
-    list?.querySelectorAll('[data-unread="1"]').forEach(el => {
-      el.classList.remove('fw-semibold', 'noti-unread');
-      el.dataset.unread = '0';
+    // UI optimista en ambos paneles
+    ['Desktop','Mobile'].forEach(prefix => {
+      const list = document.getElementById(`notiList${prefix}`);
+      list?.querySelectorAll('[data-unread="1"]').forEach(el => {
+        el.classList.remove('fw-semibold','noti-unread');
+        el.dataset.unread = '0';
+      });
     });
     setNotiBadge(0);
 
-    // 🔹 Actualización en BD
+    // Persistencia real
     await markAllRead();
 
-    // 🔹 Refrescar la lista final
+    // Refrescar (por si entraron nuevas en medio)
     await refreshNotiUI('Desktop');
-  });
+    await refreshNotiUI('Mobile');
+  };
 
-  // --- Mobile
-  const ddMobile = document.getElementById('btnNotiMobile');
-  ddMobile?.addEventListener('show.bs.dropdown', () => refreshNotiUI('Mobile'));
+  // engancha cualquiera de estos selectores que tengas en HTML
+  document.querySelectorAll('#notiMarkAll, #notiMarkAllDesktop, #notiMarkAllMobile, .js-noti-markall')
+    .forEach(btn => btn.addEventListener('click', handleMarkAll));
 
-  // --- Badge inicial
-  const unread = await getUnreadCount();
-  setNotiBadge(unread);
+  // badge inicial
+  getUnreadCount().then(setNotiBadge).catch(() => setNotiBadge(0));
 
 });
 
-
-async function getUnreadCount() {
-  const { data, error, count } = await supabase
-    .from('notifications')
-    .select('id', { count: 'exact', head: true })
-    .is('read_at', null);
-  if (error) return 0;
-  return count || 0;
-}
 
 function setNotiBadge(count) {
   const btns = [document.getElementById('btnNotiDesktop'), document.getElementById('btnNotiMobile')].filter(Boolean);
