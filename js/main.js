@@ -127,22 +127,35 @@ async function markOneRead(id) {
 
 function renderNotiList(listEl, emptyEl, items) {
   if (!listEl || !emptyEl) return;
+  listEl.innerHTML = '';
+
   if (!items.length) {
-    listEl.innerHTML = '';
     emptyEl.classList.remove('d-none');
     return;
   }
   emptyEl.classList.add('d-none');
-  listEl.innerHTML = items.map(n => {
-    const p = n.payload || {};
-    const title = p.title || 'Nueva publicación';
-    const author = p.author ? ` · ${p.author}` : '';
-    const when = new Date(n.created_at).toLocaleString('es-AR', { dateStyle: 'short', timeStyle: 'short' });
-    const isUnread = !n.read_at;
 
-    return `
-      <a href="#" class="list-group-item list-group-item-action ${isUnread ? 'fw-semibold noti-unread' : ''}"
-         data-noti="${n.id}" data-book="${p.book_id || ''}" data-unread="${isUnread ? '1' : '0'}">
+  const MAX_VISIBLE = 5;
+  let showingAll = false;
+
+  function renderLimited() {
+    listEl.innerHTML = '';
+
+    const visible = showingAll ? items : items.slice(0, MAX_VISIBLE);
+    visible.forEach(n => {
+      const p = n.payload || {};
+      const title = p.title || 'Nueva publicación';
+      const author = p.author ? ` · ${p.author}` : '';
+      const when = new Date(n.created_at).toLocaleString('es-AR', { dateStyle: 'short', timeStyle: 'short' });
+      const isUnread = !n.read_at;
+
+      const el = document.createElement('a');
+      el.href = '#';
+      el.className = `list-group-item list-group-item-action ${isUnread ? 'fw-semibold noti-unread' : ''}`;
+      el.dataset.noti = n.id;
+      el.dataset.book = p.book_id || '';
+      el.dataset.unread = isUnread ? '1' : '0';
+      el.innerHTML = `
         <div class="d-flex justify-content-between">
           <div class="me-2">
             <div>${title}${author}</div>
@@ -150,8 +163,29 @@ function renderNotiList(listEl, emptyEl, items) {
           </div>
           <i class="bi bi-chevron-right"></i>
         </div>
-      </a>`;
-  }).join('');
+      `;
+      listEl.appendChild(el);
+    });
+
+    if (items.length > MAX_VISIBLE) {
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'list-group-item list-group-item-action text-center fw-semibold';
+      btn.textContent = showingAll ? 'Ver menos' : 'Ver más';
+
+      // 💡 clave: evitar que el dropdown se cierre
+      btn.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        showingAll = !showingAll;
+        renderLimited();
+      });
+
+      listEl.appendChild(btn);
+    }
+  }
+
+  renderLimited();
 }
 
 async function loadNotiInto(prefix) {
@@ -195,6 +229,10 @@ async function loadNotiInto(prefix) {
 }
 
 document.addEventListener('DOMContentLoaded', async () => {
+  
+  document.getElementById('btnNotiDesktop')?.setAttribute('data-bs-auto-close', 'outside');
+  document.getElementById('btnNotiMobile')?.setAttribute('data-bs-auto-close', 'outside');
+
   // abrir dropdowns refresca lista y badge
   document.getElementById('btnNotiDesktop')
     ?.addEventListener('show.bs.dropdown', () => refreshNotiUI('Desktop'));
@@ -253,6 +291,7 @@ async function refreshNotiUI(prefix) {
   await loadNotiInto(prefix);
   const unread = await getUnreadCount();
   setNotiBadge(unread);
+  
 }
 
 // ===== Likes (book_likes) =====
