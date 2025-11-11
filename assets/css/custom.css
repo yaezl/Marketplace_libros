@@ -849,3 +849,51 @@ html:not(.auth-unknown) .solo-logueado {
   border-color: var(--brand-600);
   box-shadow: 0 0 0 .2rem rgba(237,138,106,.25);
 }
+
+/* ====== Notificaciones: tamaño, posición y responsive ====== */
+
+/* Desktop: ancho cómodo y scroll interno */
+.dropdown-menu[aria-labelledby="btnNotiDesktop"],
+.dropdown-menu[aria-labelledby="btnNotiMobile"]{
+  width: 360px;
+  max-height: 70vh;
+  overflow: auto;
+  border-radius: 12px;
+  z-index: 1080; /* sobre el header/offcanvas */
+}
+
+/* Ítems no leídos (ya lo venías usando) */
+.noti-unread{ background: var(--bs-secondary-bg-subtle); }
+
+/* Mobile: centrado y casi de ancho completo, sin cortar */
+@media (max-width: 576px){
+  .dropdown-menu[aria-labelledby="btnNotiMobile"]{
+    width: calc(100vw - 32px);         /* margen 16px por lado */
+    left: 50% !important;               /* centrar respecto al viewport */
+    right: auto !important;
+    transform: translateX(-50%) !important;
+    margin-top: px;                    /* separación de la campana */
+  }
+}
+
+/* ======= Ajuste final de menú de notificaciones ======= */
+
+/* Centrado exacto y límites */
+@media (max-width: 576px) {
+  .dropdown-menu[aria-labelledby="btnNotiMobile"] {
+    width: min(90vw, 400px);              /* ancho fluido pero máximo 400px */
+    left: 50% !important;                 /* centrado horizontal */
+    right: auto !important;
+    transform: translateX(-50%) !important;
+    margin-top: 10px;                     /* pequeño margen debajo del icono */
+    border-radius: 12px;                  /* borde redondeado */
+    box-shadow: 0 4px 20px rgba(0,0,0,0.15); /* sombra suave */
+  }
+}
+/* Asegurar que el menú no se salga de la pantalla */
+@media (max-width: 576px) {
+  .dropdown-menu[aria-labelledby="btnNotiMobile"] {
+    max-height: 70vh;                    /* altura máxima */
+    overflow-y: auto;                    /* scroll vertical si es necesario */
+  }
+}
