@@ -389,7 +389,7 @@ function finalizeMyBookCardCover(bookId, newUrl) {
     clearTimeout(debounceTimer);
     const query = e.target.value.trim();
 
-    if (query.length < 3) {
+    if (query.length < 1) {
       resultsDiv.style.display = "none";
       return;
     }
@@ -406,7 +406,7 @@ function finalizeMyBookCardCover(bookId, newUrl) {
         resultsDiv.innerHTML =
           '<div class="p-2 small text-danger">Error al buscar. Intentá de nuevo.</div>';
       }
-    }, 400);
+    }, 100);
   });
 
   // Click en resultado

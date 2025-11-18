@@ -51,7 +51,7 @@ if (!grid || !btnAdd) {
       clearTimeout(t);
       const q = input.value.trim();
       if (!q) { resultsWrap.innerHTML = ''; return; }
-      t = setTimeout(() => searchGBooks(q), 350);
+      t = setTimeout(() => searchGBooks(q), 50);
     });
   }
 

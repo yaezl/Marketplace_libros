@@ -112,7 +112,7 @@ function toggleNoResults() {
 }
 
 
-function debounce(fn, ms = 250) {
+function debounce(fn, ms = 50) {
   let t; return (...args) => { clearTimeout(t); t = setTimeout(() => fn(...args), ms); };
 }
 
@@ -141,7 +141,7 @@ const $inputDesktop = document.querySelector("#search-input");
 const $inputMobile  = document.querySelector("#search-input-mobile");
 
 // Función común de filtrado (con debounce)
-const handleSearch = debounce((value) => applyFilter(value || ""), 250);
+const handleSearch = debounce((value) => applyFilter(value || ""), 50);
 
 // Escuchar ambos y sincronizar valores entre sí
 [$inputDesktop, $inputMobile].forEach((inp) => {
